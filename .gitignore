@@ -1,1 +1,5 @@
 obj_srf06-cc26xx/
+/cc26xx-web-demo-srf06-cc26xx.map
+/cc26xx-web-demo.bin
+/cc26xx-web-demo.elf
+/contiki-srf06-cc26xx.a
