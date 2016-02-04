@@ -856,11 +856,11 @@ PROCESS_THREAD(cc26xx_web_demo_process, ev, data)
   init_sensors();
 
   cc26xx_web_demo_publish_event = process_alloc_event(); // this event is 142
-  printf("publish event is %d\n", cc26xx_web_demo_publish_event);
+  // printf("publish event is %d\n", cc26xx_web_demo_publish_event);
   cc26xx_web_demo_config_loaded_event = process_alloc_event(); // this event is 143
-  printf("publish event is %d\n", cc26xx_web_demo_config_loaded_event);
+  // printf("publish event is %d\n", cc26xx_web_demo_config_loaded_event);
   cc26xx_web_demo_load_config_defaults = process_alloc_event();
-  printf("publish event is %d\n", cc26xx_web_demo_load_config_defaults);
+  // printf("publish event is %d\n", cc26xx_web_demo_load_config_defaults);
   append_motion_sensor_event = process_alloc_event();
 
   /* Start all other (enabled) processes first */

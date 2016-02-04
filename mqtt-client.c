@@ -921,6 +921,7 @@ state_machine(void)
     DBG("Init\n");
     /* Continue */
   case MQTT_CLIENT_STATE_REGISTERED:
+    printf("In registering state\n");
     if(uip_ds6_get_global(ADDR_PREFERRED) != NULL) {
       /* Registered and with a public IP. Connect */
       DBG("Registered. Connect attempt %u\n", connect_attempt);

@@ -1,2 +1,2 @@
-obj_srf06-cc26xx/gcr.o: ../../../core/lib/gcr.c
-../../../core/lib/gcr.c :
+obj_srf06-cc26xx/gcr.o: contiki/core/lib/gcr.c
+contiki/core/lib/gcr.c :

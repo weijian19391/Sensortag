@@ -1,117 +1,119 @@
 obj_srf06-cc26xx/contikimac.o: \
- ../../../core/net/mac/contikimac/contikimac.c \
- ../../../platform/srf06-cc26xx/./contiki-conf.h project-conf.h \
- ../../../platform/srf06-cc26xx/sensortag/cc2650/board.h \
- ../../../cpu/cc26xx-cc13xx/lib/cc26xxware/driverlib/ioc.h \
- ../../../cpu/cc26xx-cc13xx/lib/cc26xxware/inc/hw_types.h \
- ../../../cpu/cc26xx-cc13xx/lib/cc26xxware/inc/hw_chip_def.h \
- ../../../cpu/cc26xx-cc13xx/lib/cc26xxware/inc/hw_memmap.h \
- ../../../cpu/cc26xx-cc13xx/lib/cc26xxware/inc/hw_ioc.h \
- ../../../cpu/cc26xx-cc13xx/lib/cc26xxware/inc/hw_ints.h \
- ../../../cpu/cc26xx-cc13xx/lib/cc26xxware/driverlib/interrupt.h \
- ../../../cpu/cc26xx-cc13xx/lib/cc26xxware/inc/hw_nvic.h \
- ../../../cpu/cc26xx-cc13xx/lib/cc26xxware/driverlib/debug.h \
- ../../../cpu/cc26xx-cc13xx/lib/cc26xxware/driverlib/cpu.h \
- ../../../cpu/cc26xx-cc13xx/lib/cc26xxware/driverlib/rom.h \
- ../../../cpu/cc26xx-cc13xx/lib/cc26xxware/driverlib/gpio.h \
- ../../../cpu/cc26xx-cc13xx/lib/cc26xxware/inc/hw_gpio.h \
- ../../../core/./dev/leds.h ../../../core/./dev/radio.h \
- ../../../core/./dev/watchdog.h ../../../core/./lib/random.h \
- ../../../core/./net/mac/mac-sequence.h \
- ../../../core/./net/mac/contikimac/contikimac.h \
- ../../../core/./sys/rtimer.h ../../../cpu/cc26xx-cc13xx/./rtimer-arch.h \
- ../../../core/./contiki.h ../../../core/./contiki-version.h \
- ../../../core/./contiki-default-conf.h ../../../core/./sys/process.h \
- ../../../core/./sys/pt.h ../../../core/./sys/lc.h \
- ../../../core/./sys/lc-switch.h ../../../core/./sys/cc.h \
- ../../../core/./sys/autostart.h ../../../core/./sys/process.h \
- ../../../core/./sys/timer.h ../../../core/./sys/clock.h \
- ../../../core/./sys/ctimer.h ../../../core/./sys/etimer.h \
- ../../../core/./sys/timer.h ../../../core/./sys/etimer.h \
- ../../../core/./sys/rtimer.h ../../../core/./sys/pt.h \
- ../../../core/./sys/procinit.h ../../../core/./sys/loader.h \
- ../../../core/./sys/clock.h ../../../core/./sys/energest.h \
- ../../../core/./net/mac/rdc.h ../../../core/./net/mac/mac.h \
- ../../../core/./net/netstack.h ../../../core/./net/llsec/llsec.h \
- ../../../core/./net/mac/framer.h ../../../core/./net/rime/rime.h \
- ../../../core/./net/rime/announcement.h ../../../core/./net/linkaddr.h \
- ../../../core/./net/rime/collect.h ../../../core/./net/rime/runicast.h \
- ../../../core/./net/rime/stunicast.h ../../../core/./sys/ctimer.h \
- ../../../core/./net/rime/unicast.h ../../../core/./net/rime/broadcast.h \
- ../../../core/./net/rime/abc.h ../../../core/./net/packetbuf.h \
- ../../../core/./net/llsec/llsec802154.h \
- ../../../core/./net/mac/frame802154.h ../../../core/./net/ip/uip.h \
- ../../../core/./net/ip/uipopt.h ../../../core/./net/ip/tcpip.h \
- ../../../core/./net/rime/channel.h ../../../core/./net/rime/chameleon.h \
- ../../../core/./net/queuebuf.h \
- ../../../core/./net/rime/neighbor-discovery.h \
- ../../../core/./net/rime/collect-neighbor.h \
- ../../../core/./net/rime/collect-link-estimate.h \
- ../../../core/./lib/list.h ../../../core/./net/rime/packetqueue.h \
- ../../../core/./lib/memb.h ../../../core/./net/rime/ipolite.h \
- ../../../core/./net/rime/mesh.h ../../../core/./net/rime/multihop.h \
- ../../../core/./net/rime/route-discovery.h \
- ../../../core/./net/rime/netflood.h \
- ../../../core/./net/rime/polite-announcement.h \
- ../../../core/./net/rime/polite.h ../../../core/./net/rime/rimestats.h \
- ../../../core/./net/rime/rmh.h ../../../core/./net/rime/route.h \
- ../../../core/./net/rime/rucb.h ../../../core/./net/rime/timesynch.h \
- ../../../core/./net/rime/trickle.h ../../../core/./sys/compower.h
- ../../../core/net/mac/contikimac/contikimac.c :
- ../../../platform/srf06-cc26xx/./contiki-conf.h project-conf.h :
- ../../../platform/srf06-cc26xx/sensortag/cc2650/board.h :
- ../../../cpu/cc26xx-cc13xx/lib/cc26xxware/driverlib/ioc.h :
- ../../../cpu/cc26xx-cc13xx/lib/cc26xxware/inc/hw_types.h :
- ../../../cpu/cc26xx-cc13xx/lib/cc26xxware/inc/hw_chip_def.h :
- ../../../cpu/cc26xx-cc13xx/lib/cc26xxware/inc/hw_memmap.h :
- ../../../cpu/cc26xx-cc13xx/lib/cc26xxware/inc/hw_ioc.h :
- ../../../cpu/cc26xx-cc13xx/lib/cc26xxware/inc/hw_ints.h :
- ../../../cpu/cc26xx-cc13xx/lib/cc26xxware/driverlib/interrupt.h :
- ../../../cpu/cc26xx-cc13xx/lib/cc26xxware/inc/hw_nvic.h :
- ../../../cpu/cc26xx-cc13xx/lib/cc26xxware/driverlib/debug.h :
- ../../../cpu/cc26xx-cc13xx/lib/cc26xxware/driverlib/cpu.h :
- ../../../cpu/cc26xx-cc13xx/lib/cc26xxware/driverlib/rom.h :
- ../../../cpu/cc26xx-cc13xx/lib/cc26xxware/driverlib/gpio.h :
- ../../../cpu/cc26xx-cc13xx/lib/cc26xxware/inc/hw_gpio.h :
- ../../../core/./dev/leds.h ../../../core/./dev/radio.h :
- ../../../core/./dev/watchdog.h ../../../core/./lib/random.h :
- ../../../core/./net/mac/mac-sequence.h :
- ../../../core/./net/mac/contikimac/contikimac.h :
- ../../../core/./sys/rtimer.h ../../../cpu/cc26xx-cc13xx/./rtimer-arch.h :
- ../../../core/./contiki.h ../../../core/./contiki-version.h :
- ../../../core/./contiki-default-conf.h ../../../core/./sys/process.h :
- ../../../core/./sys/pt.h ../../../core/./sys/lc.h :
- ../../../core/./sys/lc-switch.h ../../../core/./sys/cc.h :
- ../../../core/./sys/autostart.h ../../../core/./sys/process.h :
- ../../../core/./sys/timer.h ../../../core/./sys/clock.h :
- ../../../core/./sys/ctimer.h ../../../core/./sys/etimer.h :
- ../../../core/./sys/timer.h ../../../core/./sys/etimer.h :
- ../../../core/./sys/rtimer.h ../../../core/./sys/pt.h :
- ../../../core/./sys/procinit.h ../../../core/./sys/loader.h :
- ../../../core/./sys/clock.h ../../../core/./sys/energest.h :
- ../../../core/./net/mac/rdc.h ../../../core/./net/mac/mac.h :
- ../../../core/./net/netstack.h ../../../core/./net/llsec/llsec.h :
- ../../../core/./net/mac/framer.h ../../../core/./net/rime/rime.h :
- ../../../core/./net/rime/announcement.h ../../../core/./net/linkaddr.h :
- ../../../core/./net/rime/collect.h ../../../core/./net/rime/runicast.h :
- ../../../core/./net/rime/stunicast.h ../../../core/./sys/ctimer.h :
- ../../../core/./net/rime/unicast.h ../../../core/./net/rime/broadcast.h :
- ../../../core/./net/rime/abc.h ../../../core/./net/packetbuf.h :
- ../../../core/./net/llsec/llsec802154.h :
- ../../../core/./net/mac/frame802154.h ../../../core/./net/ip/uip.h :
- ../../../core/./net/ip/uipopt.h ../../../core/./net/ip/tcpip.h :
- ../../../core/./net/rime/channel.h ../../../core/./net/rime/chameleon.h :
- ../../../core/./net/queuebuf.h :
- ../../../core/./net/rime/neighbor-discovery.h :
- ../../../core/./net/rime/collect-neighbor.h :
- ../../../core/./net/rime/collect-link-estimate.h :
- ../../../core/./lib/list.h ../../../core/./net/rime/packetqueue.h :
- ../../../core/./lib/memb.h ../../../core/./net/rime/ipolite.h :
- ../../../core/./net/rime/mesh.h ../../../core/./net/rime/multihop.h :
- ../../../core/./net/rime/route-discovery.h :
- ../../../core/./net/rime/netflood.h :
- ../../../core/./net/rime/polite-announcement.h :
- ../../../core/./net/rime/polite.h ../../../core/./net/rime/rimestats.h :
- ../../../core/./net/rime/rmh.h ../../../core/./net/rime/route.h :
- ../../../core/./net/rime/rucb.h ../../../core/./net/rime/timesynch.h :
- ../../../core/./net/rime/trickle.h ../../../core/./sys/compower.h :
+ contiki/core/net/mac/contikimac/contikimac.c \
+ contiki/platform/srf06-cc26xx/./contiki-conf.h project-conf.h \
+ contiki/platform/srf06-cc26xx/sensortag/cc2650/board.h \
+ contiki/cpu/cc26xx-cc13xx/lib/cc26xxware/driverlib/ioc.h \
+ contiki/cpu/cc26xx-cc13xx/lib/cc26xxware/inc/hw_types.h \
+ contiki/cpu/cc26xx-cc13xx/lib/cc26xxware/inc/hw_chip_def.h \
+ contiki/cpu/cc26xx-cc13xx/lib/cc26xxware/inc/hw_memmap.h \
+ contiki/cpu/cc26xx-cc13xx/lib/cc26xxware/inc/hw_ioc.h \
+ contiki/cpu/cc26xx-cc13xx/lib/cc26xxware/inc/hw_ints.h \
+ contiki/cpu/cc26xx-cc13xx/lib/cc26xxware/driverlib/interrupt.h \
+ contiki/cpu/cc26xx-cc13xx/lib/cc26xxware/inc/hw_nvic.h \
+ contiki/cpu/cc26xx-cc13xx/lib/cc26xxware/driverlib/debug.h \
+ contiki/cpu/cc26xx-cc13xx/lib/cc26xxware/driverlib/cpu.h \
+ contiki/cpu/cc26xx-cc13xx/lib/cc26xxware/driverlib/rom.h \
+ contiki/cpu/cc26xx-cc13xx/lib/cc26xxware/driverlib/gpio.h \
+ contiki/cpu/cc26xx-cc13xx/lib/cc26xxware/inc/hw_gpio.h \
+ contiki/core/./dev/leds.h contiki/core/./dev/radio.h \
+ contiki/core/./dev/watchdog.h contiki/core/./lib/random.h \
+ contiki/core/./net/mac/mac-sequence.h \
+ contiki/core/./net/mac/contikimac/contikimac.h \
+ contiki/core/./sys/rtimer.h contiki/cpu/cc26xx-cc13xx/./rtimer-arch.h \
+ contiki/core/./contiki.h contiki/core/./contiki-version.h \
+ contiki/core/./contiki-default-conf.h contiki/core/./sys/process.h \
+ contiki/core/./sys/pt.h contiki/core/./sys/lc.h \
+ contiki/core/./sys/lc-switch.h contiki/core/./sys/cc.h \
+ contiki/core/./sys/cc-gcc.h contiki/core/./sys/autostart.h \
+ contiki/core/./sys/process.h contiki/core/./sys/timer.h \
+ contiki/core/./sys/clock.h contiki/core/./sys/ctimer.h \
+ contiki/core/./sys/etimer.h contiki/core/./sys/timer.h \
+ contiki/core/./sys/etimer.h contiki/core/./sys/rtimer.h \
+ contiki/core/./sys/pt.h contiki/core/./sys/procinit.h \
+ contiki/core/./sys/loader.h contiki/core/./sys/clock.h \
+ contiki/core/./sys/energest.h contiki/core/./net/mac/rdc.h \
+ contiki/core/./net/mac/mac.h contiki/core/./net/netstack.h \
+ contiki/core/./net/llsec/llsec.h contiki/core/./net/mac/framer.h \
+ contiki/core/./net/rime/rime.h contiki/core/./net/rime/announcement.h \
+ contiki/core/./net/linkaddr.h contiki/core/./net/rime/collect.h \
+ contiki/core/./net/rime/runicast.h contiki/core/./net/rime/stunicast.h \
+ contiki/core/./sys/ctimer.h contiki/core/./net/rime/unicast.h \
+ contiki/core/./net/rime/broadcast.h contiki/core/./net/rime/abc.h \
+ contiki/core/./net/packetbuf.h contiki/core/./net/llsec/llsec802154.h \
+ contiki/core/./net/mac/frame802154.h contiki/core/./net/ip/uip.h \
+ contiki/core/./net/ip/uipopt.h contiki/core/./net/ip/tcpip.h \
+ contiki/core/./net/mac/tsch/tsch-conf.h \
+ contiki/core/./net/rime/channel.h contiki/core/./net/rime/chameleon.h \
+ contiki/core/./net/queuebuf.h \
+ contiki/core/./net/rime/neighbor-discovery.h \
+ contiki/core/./net/rime/collect-neighbor.h \
+ contiki/core/./net/rime/collect-link-estimate.h \
+ contiki/core/./lib/list.h contiki/core/./net/rime/packetqueue.h \
+ contiki/core/./lib/memb.h contiki/core/./net/rime/ipolite.h \
+ contiki/core/./net/rime/mesh.h contiki/core/./net/rime/multihop.h \
+ contiki/core/./net/rime/route-discovery.h \
+ contiki/core/./net/rime/netflood.h \
+ contiki/core/./net/rime/polite-announcement.h \
+ contiki/core/./net/rime/polite.h contiki/core/./net/rime/rimestats.h \
+ contiki/core/./net/rime/rmh.h contiki/core/./net/rime/route.h \
+ contiki/core/./net/rime/rucb.h contiki/core/./net/rime/timesynch.h \
+ contiki/core/./net/rime/trickle.h contiki/core/./sys/compower.h
+ contiki/core/net/mac/contikimac/contikimac.c :
+ contiki/platform/srf06-cc26xx/./contiki-conf.h project-conf.h :
+ contiki/platform/srf06-cc26xx/sensortag/cc2650/board.h :
+ contiki/cpu/cc26xx-cc13xx/lib/cc26xxware/driverlib/ioc.h :
+ contiki/cpu/cc26xx-cc13xx/lib/cc26xxware/inc/hw_types.h :
+ contiki/cpu/cc26xx-cc13xx/lib/cc26xxware/inc/hw_chip_def.h :
+ contiki/cpu/cc26xx-cc13xx/lib/cc26xxware/inc/hw_memmap.h :
+ contiki/cpu/cc26xx-cc13xx/lib/cc26xxware/inc/hw_ioc.h :
+ contiki/cpu/cc26xx-cc13xx/lib/cc26xxware/inc/hw_ints.h :
+ contiki/cpu/cc26xx-cc13xx/lib/cc26xxware/driverlib/interrupt.h :
+ contiki/cpu/cc26xx-cc13xx/lib/cc26xxware/inc/hw_nvic.h :
+ contiki/cpu/cc26xx-cc13xx/lib/cc26xxware/driverlib/debug.h :
+ contiki/cpu/cc26xx-cc13xx/lib/cc26xxware/driverlib/cpu.h :
+ contiki/cpu/cc26xx-cc13xx/lib/cc26xxware/driverlib/rom.h :
+ contiki/cpu/cc26xx-cc13xx/lib/cc26xxware/driverlib/gpio.h :
+ contiki/cpu/cc26xx-cc13xx/lib/cc26xxware/inc/hw_gpio.h :
+ contiki/core/./dev/leds.h contiki/core/./dev/radio.h :
+ contiki/core/./dev/watchdog.h contiki/core/./lib/random.h :
+ contiki/core/./net/mac/mac-sequence.h :
+ contiki/core/./net/mac/contikimac/contikimac.h :
+ contiki/core/./sys/rtimer.h contiki/cpu/cc26xx-cc13xx/./rtimer-arch.h :
+ contiki/core/./contiki.h contiki/core/./contiki-version.h :
+ contiki/core/./contiki-default-conf.h contiki/core/./sys/process.h :
+ contiki/core/./sys/pt.h contiki/core/./sys/lc.h :
+ contiki/core/./sys/lc-switch.h contiki/core/./sys/cc.h :
+ contiki/core/./sys/cc-gcc.h contiki/core/./sys/autostart.h :
+ contiki/core/./sys/process.h contiki/core/./sys/timer.h :
+ contiki/core/./sys/clock.h contiki/core/./sys/ctimer.h :
+ contiki/core/./sys/etimer.h contiki/core/./sys/timer.h :
+ contiki/core/./sys/etimer.h contiki/core/./sys/rtimer.h :
+ contiki/core/./sys/pt.h contiki/core/./sys/procinit.h :
+ contiki/core/./sys/loader.h contiki/core/./sys/clock.h :
+ contiki/core/./sys/energest.h contiki/core/./net/mac/rdc.h :
+ contiki/core/./net/mac/mac.h contiki/core/./net/netstack.h :
+ contiki/core/./net/llsec/llsec.h contiki/core/./net/mac/framer.h :
+ contiki/core/./net/rime/rime.h contiki/core/./net/rime/announcement.h :
+ contiki/core/./net/linkaddr.h contiki/core/./net/rime/collect.h :
+ contiki/core/./net/rime/runicast.h contiki/core/./net/rime/stunicast.h :
+ contiki/core/./sys/ctimer.h contiki/core/./net/rime/unicast.h :
+ contiki/core/./net/rime/broadcast.h contiki/core/./net/rime/abc.h :
+ contiki/core/./net/packetbuf.h contiki/core/./net/llsec/llsec802154.h :
+ contiki/core/./net/mac/frame802154.h contiki/core/./net/ip/uip.h :
+ contiki/core/./net/ip/uipopt.h contiki/core/./net/ip/tcpip.h :
+ contiki/core/./net/mac/tsch/tsch-conf.h :
+ contiki/core/./net/rime/channel.h contiki/core/./net/rime/chameleon.h :
+ contiki/core/./net/queuebuf.h :
+ contiki/core/./net/rime/neighbor-discovery.h :
+ contiki/core/./net/rime/collect-neighbor.h :
+ contiki/core/./net/rime/collect-link-estimate.h :
+ contiki/core/./lib/list.h contiki/core/./net/rime/packetqueue.h :
+ contiki/core/./lib/memb.h contiki/core/./net/rime/ipolite.h :
+ contiki/core/./net/rime/mesh.h contiki/core/./net/rime/multihop.h :
+ contiki/core/./net/rime/route-discovery.h :
+ contiki/core/./net/rime/netflood.h :
+ contiki/core/./net/rime/polite-announcement.h :
+ contiki/core/./net/rime/polite.h contiki/core/./net/rime/rimestats.h :
+ contiki/core/./net/rime/rmh.h contiki/core/./net/rime/route.h :
+ contiki/core/./net/rime/rucb.h contiki/core/./net/rime/timesynch.h :
+ contiki/core/./net/rime/trickle.h contiki/core/./sys/compower.h :
