@@ -624,78 +624,78 @@ subscribe(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-static void
-publish(void)
-{
-  /* Publish MQTT topic in IBM quickstart format */
-  int len;
-  int remaining = APP_BUFFER_SIZE;
-  char def_rt_str[64];
+// static void
+// publish(void)
+// {
+//   /* Publish MQTT topic in IBM quickstart format */
+//   int len;
+//   int remaining = APP_BUFFER_SIZE;
+//   char def_rt_str[64];
 
-  seq_nr_value++;
+//   seq_nr_value++;
 
-  buf_ptr = app_buffer;
+//   buf_ptr = app_buffer;
 
-  len = snprintf(buf_ptr, remaining,
-                 "{"
-                 "\"d\":{"
-                 "\"myName\":\"%s\","
-                 "\"Seq #\":%d,"
-                 "\"Uptime (sec)\":%lu",
-                 BOARD_STRING, seq_nr_value, clock_seconds());
+//   len = snprintf(buf_ptr, remaining,
+//                  "{"
+//                  "\"d\":{"
+//                  "\"myName\":\"%s\","
+//                  "\"Seq #\":%d,"
+//                  "\"Uptime (sec)\":%lu",
+//                  BOARD_STRING, seq_nr_value, clock_seconds());
 
-  if(len < 0 || len >= remaining) {
-    printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
-    return;
-  }
+//   if(len < 0 || len >= remaining) {
+//     printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
+//     return;
+//   }
 
-  remaining -= len;
-  buf_ptr += len;
+//   remaining -= len;
+//   buf_ptr += len;
 
-  /* Put our Default route's string representation in a buffer */
-  memset(def_rt_str, 0, sizeof(def_rt_str));
-  cc26xx_web_demo_ipaddr_sprintf(def_rt_str, sizeof(def_rt_str),
-                                 uip_ds6_defrt_choose());
+//   /* Put our Default route's string representation in a buffer */
+//   memset(def_rt_str, 0, sizeof(def_rt_str));
+//   cc26xx_web_demo_ipaddr_sprintf(def_rt_str, sizeof(def_rt_str),
+//                                  uip_ds6_defrt_choose());
 
-  len = snprintf(buf_ptr, remaining, ",\"Def Route\":\"%s\",\"RSSI (dBm)\":%d",
-                 def_rt_str, def_rt_rssi);
+//   len = snprintf(buf_ptr, remaining, ",\"Def Route\":\"%s\",\"RSSI (dBm)\":%d",
+//                  def_rt_str, def_rt_rssi);
 
-  if(len < 0 || len >= remaining) {
-    printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
-    return;
-  }
-  remaining -= len;
-  buf_ptr += len;
+//   if(len < 0 || len >= remaining) {
+//     printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
+//     return;
+//   }
+//   remaining -= len;
+//   buf_ptr += len;
 
-  memcpy(&def_route, uip_ds6_defrt_choose(), sizeof(uip_ip6addr_t));
+//   memcpy(&def_route, uip_ds6_defrt_choose(), sizeof(uip_ip6addr_t));
 
-  for(reading = cc26xx_web_demo_sensor_first();
-      reading != NULL; reading = reading->next) {
-    if(reading->publish && reading->raw != CC26XX_SENSOR_READING_ERROR) {
-      len = snprintf(buf_ptr, remaining,
-                     ",\"%s (%s)\":%s", reading->descr, reading->units,
-                     reading->converted);
+//   for(reading = cc26xx_web_demo_sensor_first();
+//       reading != NULL; reading = reading->next) {
+//     if(reading->publish && reading->raw != CC26XX_SENSOR_READING_ERROR) {
+//       len = snprintf(buf_ptr, remaining,
+//                      ",\"%s (%s)\":%s", reading->descr, reading->units,
+//                      reading->converted);
 
-      if(len < 0 || len >= remaining) {
-        printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
-        return;
-      }
-      remaining -= len;
-      buf_ptr += len;
-    }
-  }
+//       if(len < 0 || len >= remaining) {
+//         printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
+//         return;
+//       }
+//       remaining -= len;
+//       buf_ptr += len;
+//     }
+//   }
 
-  len = snprintf(buf_ptr, remaining, "}}");
+//   len = snprintf(buf_ptr, remaining, "}}");
 
-  if(len < 0 || len >= remaining) {
-    printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
-    return;
-  }
+//   if(len < 0 || len >= remaining) {
+//     printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
+//     return;
+//   }
 
-  mqtt_publish(&conn, NULL, pub_topic, (uint8_t *)app_buffer,
-               strlen(app_buffer), MQTT_QOS_LEVEL_0, MQTT_RETAIN_OFF);
-  DBG("APP - Publish!\n");
-}
+//   mqtt_publish(&conn, NULL, pub_topic, (uint8_t *)app_buffer,
+//                strlen(app_buffer), MQTT_QOS_LEVEL_0, MQTT_RETAIN_OFF);
+//   DBG("APP - Publish!\n");
+// }
 /*---------------------------------------------------------------------------*/
 static void
 arrToString(char stringArr[][DATA_RES], int size, char* myString){
@@ -815,22 +815,22 @@ publishAccReadings(void)
   DBG("APP - Publish!\n");
 }
 /*---------------------------------------------------------------------------*/
-static void
-printMotionReadings(void){
-  char myString[NUM_DATA_PER_PUB*DATA_RES] = "";    
-  arrToString(motion_sensor_arr.acc_x, motion_sensor_arr.size, myString);
-  printf("acc_x is %s\n", myString);
-  arrToString(motion_sensor_arr.acc_y, motion_sensor_arr.size, myString);
-  printf("acc_y is %s\n", myString);
-  arrToString(motion_sensor_arr.acc_z, motion_sensor_arr.size, myString);
-  printf("acc_z is %s\n", myString);
-  arrToString(motion_sensor_arr.gyro_x, motion_sensor_arr.size, myString);
-  printf("gyro_x is %s\n", myString);
-  arrToString(motion_sensor_arr.gyro_y, motion_sensor_arr.size, myString);
-  printf("gyro_y is %s\n", myString);
-  arrToString(motion_sensor_arr.gyro_z, motion_sensor_arr.size, myString);
-  printf("gyro_z is %s\n", myString);
-}
+// static void
+// printMotionReadings(void){
+//   char myString[NUM_DATA_PER_PUB*DATA_RES] = "";    
+//   arrToString(motion_sensor_arr.acc_x, motion_sensor_arr.size, myString);
+//   printf("acc_x is %s\n", myString);
+//   arrToString(motion_sensor_arr.acc_y, motion_sensor_arr.size, myString);
+//   printf("acc_y is %s\n", myString);
+//   arrToString(motion_sensor_arr.acc_z, motion_sensor_arr.size, myString);
+//   printf("acc_z is %s\n", myString);
+//   arrToString(motion_sensor_arr.gyro_x, motion_sensor_arr.size, myString);
+//   printf("gyro_x is %s\n", myString);
+//   arrToString(motion_sensor_arr.gyro_y, motion_sensor_arr.size, myString);
+//   printf("gyro_y is %s\n", myString);
+//   arrToString(motion_sensor_arr.gyro_z, motion_sensor_arr.size, myString);
+//   printf("gyro_z is %s\n", myString);
+// }
 /*---------------------------------------------------------------------------*/
 static void 
 appendMotionReadings(void)
@@ -921,7 +921,7 @@ state_machine(void)
     DBG("Init\n");
     /* Continue */
   case MQTT_CLIENT_STATE_REGISTERED:
-    printf("In registering state\n");
+    // printf("In registering state\n");
     if(uip_ds6_get_global(ADDR_PREFERRED) != NULL) {
       /* Registered and with a public IP. Connect */
       DBG("Registered. Connect attempt %u\n", connect_attempt);

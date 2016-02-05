@@ -158,11 +158,13 @@ extern process_event_t cc26xx_web_demo_load_config_defaults;
 #define CC26XX_WEB_DEMO_UNIT_ACC      "G"
 #define CC26XX_WEB_DEMO_UNIT_GYRO     "deg per sec"
 /*---------------------------------------------------------------------------*/
-/* A data type for sensor readings, internally stored in a linked list */
-#define CC26XX_WEB_DEMO_CONVERTED_LEN        12
-#define DATA_RES                             10
-#define NUM_DATA_PER_PUB                     10
 
+#define CC26XX_WEB_DEMO_CONVERTED_LEN        12
+#define DATA_RES                             10 //numbers of char needed for each sensor reading
+#define NUM_DATA_PER_PUB                     10 //number of readings for each MQTT publish
+
+
+/* A data type for sensor readings, internally stored in a linked list */
 typedef struct cc26xx_web_demo_sensor_reading {
   struct cc26xx_web_demo_sensor_reading *next;
   int raw;

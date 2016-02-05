@@ -50,6 +50,10 @@
 #define NBR_TABLE_CONF_MAX_NEIGHBORS          8
 #define UIP_CONF_MAX_ROUTES                   8
 #define UIP_CONF_TCP_MSS                    128
+
+/* Define the Accelerometer range and sampling rate*/
+#define MPU_9250_SENSOR_CONF_ACC_RANGE 		MPU_9250_SENSOR_ACC_RANGE_4G
+#define MPU_9250_SENSOR_CONF_ACC_SAMPLING 	MPU_9250_SENSOR_ACC_SAMPLING_1_95
 /*---------------------------------------------------------------------------*/
 #endif /* PROJECT_CONF_H_ */
 /*---------------------------------------------------------------------------*/
