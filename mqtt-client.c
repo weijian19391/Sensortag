@@ -590,8 +590,8 @@ init_config()
   memcpy(conf->auth_token, cc26XX_WEB_DEMO_DEFAULT_AUTH_TOKEN, strlen(cc26XX_WEB_DEMO_DEFAULT_AUTH_TOKEN));
   conf->broker_port = CC26XX_WEB_DEMO_DEFAULT_BROKER_PORT;
   conf->pub_interval = CC26XX_WEB_DEMO_DEFAULT_PUBLISH_INTERVAL;
-  printf("CLOCK_SECOND is %d\n", CLOCK_SECOND);
-  printf("pub_interval in init_config is %lu\n", conf->pub_interval);
+  // printf("CLOCK_SECOND is %d\n", CLOCK_SECOND);
+  // printf("pub_interval in init_config is %lu\n", conf->pub_interval);
 
   return 1;
 }

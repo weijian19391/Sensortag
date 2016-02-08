@@ -55,6 +55,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#define DEBUG 1
+#if DEBUG
+#define PRINTF(...) printf("CC26XX-WEB-DEMO.C: \t\t");\
+                    printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
 /*---------------------------------------------------------------------------*/
 PROCESS_NAME(cetic_6lbr_client_process); // declares the variable name of the process
 PROCESS(cc26xx_web_demo_process, "CC26XX Web Demo");
@@ -64,7 +72,6 @@ PROCESS(cc26xx_web_demo_process, "CC26XX Web Demo");
  * ticks + a random interval between 0 and SENSOR_READING_RANDOM ticks
  */
 #define SENSOR_READING_PERIOD (CLOCK_SECOND * 20)
-// #define SENSOR_READING_RANDOM (CLOCK_SECOND << 4)
 
 struct ctimer batmon_timer;
 
@@ -112,29 +119,6 @@ DEMO_SENSOR(batmon_volt, CC26XX_WEB_DEMO_SENSOR_BATMON_VOLT,
             "Battery Volt", "battery-volt", "batmon_volt",
             CC26XX_WEB_DEMO_UNIT_VOLT);
 
-/* Sensortag sensors */
-// DEMO_SENSOR(bmp_pres, CC26XX_WEB_DEMO_SENSOR_BMP_PRES,
-//             "Air Pressure", "air-pressure", "bmp_pres",
-//             CC26XX_WEB_DEMO_UNIT_PRES);
-// DEMO_SENSOR(bmp_temp, CC26XX_WEB_DEMO_SENSOR_BMP_TEMP,
-//             "Air Temp", "air-temp", "bmp_temp",
-//             CC26XX_WEB_DEMO_UNIT_TEMP);
-// DEMO_SENSOR(hdc_temp, CC26XX_WEB_DEMO_SENSOR_HDC_TEMP,
-//             "HDC Temp", "hdc-temp", "hdc_temp",
-//             CC26XX_WEB_DEMO_UNIT_TEMP);
-// DEMO_SENSOR(hdc_hum, CC26XX_WEB_DEMO_SENSOR_HDC_HUMIDITY,
-//             "HDC Humidity", "hdc-humidity", "hdc_hum",
-//             CC26XX_WEB_DEMO_UNIT_HUMIDITY);
-// DEMO_SENSOR(tmp_amb, CC26XX_WEB_DEMO_SENSOR_TMP_AMBIENT,
-//             "Ambient Temp", "ambient-temp", "tmp_amb",
-//             CC26XX_WEB_DEMO_UNIT_TEMP);
-// DEMO_SENSOR(tmp_obj, CC26XX_WEB_DEMO_SENSOR_TMP_OBJECT,
-//             "Object Temp", "object-temp", "tmp_obj",
-//             CC26XX_WEB_DEMO_UNIT_TEMP);
-// DEMO_SENSOR(opt, CC26XX_WEB_DEMO_SENSOR_OPT_LIGHT,
-//             "Light", "light", "light",
-//             CC26XX_WEB_DEMO_UNIT_LIGHT);
-
 /* MPU Readings */
 DEMO_SENSOR(mpu_acc_x, CC26XX_WEB_DEMO_SENSOR_MPU_ACC_X,
             "Acc X", "acc-x", "acc_x",
@@ -157,10 +141,6 @@ DEMO_SENSOR(mpu_gyro_z, CC26XX_WEB_DEMO_SENSOR_MPU_GYRO_Z,
             CC26XX_WEB_DEMO_UNIT_GYRO);
 /*---------------------------------------------------------------------------*/
 
-// static void init_bmp_reading(void *data);
-// static void init_light_reading(void *data);
-// static void init_hdc_reading(void *data);
-// static void init_tmp_reading(void *data);
 static void init_mpu_reading(void *data);
 
 /*---------------------------------------------------------------------------*/
@@ -491,178 +471,25 @@ print_mpu_reading(int reading, char *buf)
 
   sprintf(loc_buf, "%d.%02d", reading / 100, reading % 100);
 }
-/*---------------------------------------------------------------------------*/
-// static void
-// get_bmp_reading()
-// {
-//   int value;
-//   char *buf;
-//   clock_time_t next = SENSOR_READING_PERIOD +
-//     (random_rand() % SENSOR_READING_RANDOM);
 
-//   if(bmp_pres_reading.publish) {
-//     value = bmp_280_sensor.value(BMP_280_SENSOR_TYPE_PRESS);
-//     if(value != CC26XX_SENSOR_READING_ERROR) {
-//       bmp_pres_reading.raw = value;
-
-//       compare_and_update(&bmp_pres_reading);
-
-//       buf = bmp_pres_reading.converted;
-//       memset(buf, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
-//       snprintf(buf, CC26XX_WEB_DEMO_CONVERTED_LEN, "%d.%02d", value / 100,
-//                value % 100);
-//     }
-//   }
-
-//   if(bmp_temp_reading.publish) {
-//     value = bmp_280_sensor.value(BMP_280_SENSOR_TYPE_TEMP);
-//     if(value != CC26XX_SENSOR_READING_ERROR) {
-//       bmp_temp_reading.raw = value;
-
-//       compare_and_update(&bmp_temp_reading);
-
-//       buf = bmp_temp_reading.converted;
-//       memset(buf, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
-//       snprintf(buf, CC26XX_WEB_DEMO_CONVERTED_LEN, "%d.%02d", value / 100,
-//                value % 100);
-//     }
-//   }
-
-//   SENSORS_DEACTIVATE(bmp_280_sensor);
-
-//   ctimer_set(&bmp_timer, next, init_bmp_reading, NULL);
-// }
-// /*---------------------------------------------------------------------------*/
-// static void
-// get_tmp_reading()
-// {
-//   int value;
-//   char *buf;
-//   clock_time_t next = SENSOR_READING_PERIOD +
-//     (random_rand() % SENSOR_READING_RANDOM);
-
-//   if(tmp_amb_reading.publish || tmp_obj_reading.publish) {
-//     if(tmp_007_sensor.value(TMP_007_SENSOR_TYPE_ALL) ==
-//        CC26XX_SENSOR_READING_ERROR) {
-
-//       SENSORS_DEACTIVATE(tmp_007_sensor);
-//       ctimer_set(&tmp_timer, next, init_tmp_reading, NULL);
-//     }
-//   }
-
-//   if(tmp_amb_reading.publish) {
-//     value = tmp_007_sensor.value(TMP_007_SENSOR_TYPE_AMBIENT);
-//     tmp_amb_reading.raw = value;
-
-//     compare_and_update(&tmp_amb_reading);
-
-//     buf = tmp_amb_reading.converted;
-//     memset(buf, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
-//     snprintf(buf, CC26XX_WEB_DEMO_CONVERTED_LEN, "%d.%03d", value / 1000,
-//              value % 1000);
-//   }
-
-//   if(tmp_obj_reading.publish) {
-//     value = tmp_007_sensor.value(TMP_007_SENSOR_TYPE_OBJECT);
-//     tmp_obj_reading.raw = value;
-
-//     compare_and_update(&tmp_obj_reading);
-
-//     buf = tmp_obj_reading.converted;
-//     memset(buf, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
-//     snprintf(buf, CC26XX_WEB_DEMO_CONVERTED_LEN, "%d.%03d", value / 1000,
-//              value % 1000);
-//   }
-
-//   SENSORS_DEACTIVATE(tmp_007_sensor);
-
-//   ctimer_set(&tmp_timer, next, init_tmp_reading, NULL);
-// }
-// /*---------------------------------------------------------------------------*/
-// static void
-// get_hdc_reading()
-// {
-//   int value;
-//   char *buf;
-//   clock_time_t next = SENSOR_READING_PERIOD +
-//     (random_rand() % SENSOR_READING_RANDOM);
-
-//   if(hdc_temp_reading.publish) {
-//     value = hdc_1000_sensor.value(HDC_1000_SENSOR_TYPE_TEMP);
-//     if(value != CC26XX_SENSOR_READING_ERROR) {
-//       hdc_temp_reading.raw = value;
-
-//       compare_and_update(&hdc_temp_reading);
-
-//       buf = hdc_temp_reading.converted;
-//       memset(buf, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
-//       snprintf(buf, CC26XX_WEB_DEMO_CONVERTED_LEN, "%d.%02d", value / 100,
-//                value % 100);
-//     }
-//   }
-
-//   if(hdc_hum_reading.publish) {
-//     value = hdc_1000_sensor.value(HDC_1000_SENSOR_TYPE_HUMIDITY);
-//     if(value != CC26XX_SENSOR_READING_ERROR) {
-//       hdc_hum_reading.raw = value;
-
-//       compare_and_update(&hdc_hum_reading);
-
-//       buf = hdc_hum_reading.converted;
-//       memset(buf, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
-//       snprintf(buf, CC26XX_WEB_DEMO_CONVERTED_LEN, "%d.%02d", value / 100,
-//                value % 100);
-//     }
-//   }
-
-//   ctimer_set(&hdc_timer, next, init_hdc_reading, NULL);
-// }
-// /*---------------------------------------------------------------------------*/
-// static void
-// get_light_reading()
-// {
-//   int value;
-//   char *buf;
-//   clock_time_t next = SENSOR_READING_PERIOD +
-//     (random_rand() % SENSOR_READING_RANDOM);
-
-//   value = opt_3001_sensor.value(0);
-
-//   if(value != CC26XX_SENSOR_READING_ERROR) {
-//     opt_reading.raw = value;
-
-//     compare_and_update(&opt_reading);
-
-//     buf = opt_reading.converted;
-//     memset(buf, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
-//     snprintf(buf, CC26XX_WEB_DEMO_CONVERTED_LEN, "%d.%02d", value / 100,
-//              value % 100);
-//   }
-
-//   /* The OPT will turn itself off, so we don't need to call its DEACTIVATE */
-//   ctimer_set(&opt_timer, next, init_light_reading, NULL);
-// }
 /*---------------------------------------------------------------------------*/
 static void
 get_mpu_reading()
 {
-  printf("inside get_mpu_reading\n");
+  PRINTF("get_mpu_reading()\n");
   // clock_time_t next = SENSOR_READING_PERIOD +
   //   (random_rand() % SENSOR_READING_RANDOM);
   clock_time_t next = SENSOR_READING_PERIOD;
   int raw;
 
   if(mpu_gyro_x_reading.publish) {
-    printf("reading value of gyro x\n");
     raw = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_GYRO_X);
-    printf("After assigning raw value of gyro x\n");
     if(raw != CC26XX_SENSOR_READING_ERROR) {
       mpu_gyro_x_reading.raw = raw;
     }
   }
 
   if(mpu_gyro_y_reading.publish) {
-     printf("reading value of gyro y\n");
     raw = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_GYRO_Y);
     if(raw != CC26XX_SENSOR_READING_ERROR) {
       mpu_gyro_y_reading.raw = raw;
@@ -670,7 +497,6 @@ get_mpu_reading()
   }
 
   if(mpu_gyro_z_reading.publish) {
-     printf("reading value of gyro z\n");
     raw = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_GYRO_Z);
     if(raw != CC26XX_SENSOR_READING_ERROR) {
       mpu_gyro_z_reading.raw = raw;
@@ -678,7 +504,6 @@ get_mpu_reading()
   }
 
   if(mpu_acc_x_reading.publish) {
-     printf("reading value of acc x\n");
     raw = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_X);
     if(raw != CC26XX_SENSOR_READING_ERROR) {
       mpu_acc_x_reading.raw = raw;
@@ -686,7 +511,6 @@ get_mpu_reading()
   }
 
   if(mpu_acc_y_reading.publish) {
-     printf("reading value of acc y\n");
     raw = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_Y);
     if(raw != CC26XX_SENSOR_READING_ERROR) {
       mpu_acc_y_reading.raw = raw;
@@ -694,7 +518,6 @@ get_mpu_reading()
   }
 
   if(mpu_acc_z_reading.publish) {
-     printf("reading value of acc z\n");
     raw = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_Z);
     if(raw != CC26XX_SENSOR_READING_ERROR) {
       mpu_acc_z_reading.raw = raw;
@@ -742,50 +565,12 @@ get_mpu_reading()
   /* We only use the single timer */
   ctimer_set(&mpu_timer, next, init_mpu_reading, NULL);
 }
-/*---------------------------------------------------------------------------*/
-/*static void
-init_tmp_reading(void *data)
-{
-  if(tmp_amb_reading.publish || tmp_obj_reading.publish) {
-    SENSORS_ACTIVATE(tmp_007_sensor);
-  } else {
-    ctimer_set(&tmp_timer, CLOCK_SECOND, init_tmp_reading, NULL);
-  }
-}*/
-/*---------------------------------------------------------------------------*/
-/*static void
-init_bmp_reading(void *data)
-{
-  if(bmp_pres_reading.publish || bmp_temp_reading.publish) {
-    SENSORS_ACTIVATE(bmp_280_sensor);
-  } else {
-    ctimer_set(&bmp_timer, CLOCK_SECOND, init_bmp_reading, NULL);
-  }
-}*/
-/*---------------------------------------------------------------------------*/
-/*static void
-init_hdc_reading(void *data)
-{
-  if(hdc_hum_reading.publish || hdc_temp_reading.publish) {
-    SENSORS_ACTIVATE(hdc_1000_sensor);
-  } else {
-    ctimer_set(&hdc_timer, CLOCK_SECOND, init_hdc_reading, NULL);
-  }
-}*/
-/*---------------------------------------------------------------------------*/
-/*static void
-init_light_reading(void *data)
-{
-  if(opt_reading.publish) {
-    SENSORS_ACTIVATE(opt_3001_sensor);
-  } else {
-    ctimer_set(&opt_timer, CLOCK_SECOND, init_light_reading, NULL);
-  }
-}*/
+
 /*---------------------------------------------------------------------------*/
 static void
 init_mpu_reading(void *data)
 {
+  PRINTF("init_mpu_reading()\n");
   int readings_bitmap = 0;
 
   if(mpu_acc_x_reading.publish || mpu_acc_y_reading.publish ||
@@ -809,6 +594,7 @@ init_mpu_reading(void *data)
 static void
 init_sensor_readings(void)
 {
+  PRINTF("init_sensor_readings()\n");
   /*
    * Make a first pass and get all initial sensor readings. This will also
    * trigger periodic value updates
@@ -816,10 +602,6 @@ init_sensor_readings(void)
   get_batmon_reading(NULL);
 
 #if BOARD_SENSORTAG
-  /*init_bmp_reading(NULL);
-  init_light_reading(NULL);
-  init_hdc_reading(NULL);
-  init_tmp_reading(NULL);*/
   init_mpu_reading(NULL);
 #endif /* BOARD_SENSORTAG */
 
@@ -829,6 +611,7 @@ init_sensor_readings(void)
 static void
 init_sensors(void)
 {
+  PRINTF("init_sensors()\n");
 
   list_add(sensor_list, &batmon_temp_reading);
   list_add(sensor_list, &batmon_volt_reading);
@@ -973,7 +756,6 @@ PROCESS_THREAD(cc26xx_web_demo_process, ev, data)
       // get_tmp_reading();
       printf("Shouldnt come here! tmp_007_sensor\n");
     } else if(ev == sensors_event && data == &mpu_9250_sensor) {
-      printf("inside main .c, before get_mpu_reading\n");
       get_mpu_reading();
 #endif
     }
