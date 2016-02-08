@@ -56,7 +56,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #define PRINTF(...) printf("CC26XX-WEB-DEMO.C: \t\t");\
                     printf(__VA_ARGS__)
@@ -71,7 +71,7 @@ PROCESS(cc26xx_web_demo_process, "CC26XX Web Demo");
  * Update sensor readings in a staggered fashion every SENSOR_READING_PERIOD
  * ticks + a random interval between 0 and SENSOR_READING_RANDOM ticks
  */
-#define SENSOR_READING_PERIOD (CLOCK_SECOND * 20)
+#define SENSOR_READING_PERIOD (CLOCK_SECOND * 60)
 
 struct ctimer batmon_timer;
 
@@ -584,6 +584,7 @@ init_mpu_reading(void *data)
   }
 
   if(readings_bitmap) {
+    // mpu_9250_sensor.configure(SENSORS_HW_INIT, readings_bitmap);
     mpu_9250_sensor.configure(SENSORS_ACTIVE, readings_bitmap);
   } else {
     ctimer_set(&mpu_timer, CLOCK_SECOND, init_mpu_reading, NULL);
@@ -743,18 +744,6 @@ PROCESS_THREAD(cc26xx_web_demo_process, ev, data)
     } else if(ev == httpd_simple_event_new_config) {
       save_config();
 #if BOARD_SENSORTAG
-    } else if(ev == sensors_event && data == &bmp_280_sensor) {
-      // get_bmp_reading();
-      printf("Shouldnt come here! bmp reading\n");
-    } else if(ev == sensors_event && data == &opt_3001_sensor) {
-      // get_light_reading();
-      printf("Shouldnt come here! opt_3001_sensor\n");
-    } else if(ev == sensors_event && data == &hdc_1000_sensor) {
-      // get_hdc_reading();
-      printf("Shouldnt come here! hdc_1000_sensor\n");
-    } else if(ev == sensors_event && data == &tmp_007_sensor) {
-      // get_tmp_reading();
-      printf("Shouldnt come here! tmp_007_sensor\n");
     } else if(ev == sensors_event && data == &mpu_9250_sensor) {
       get_mpu_reading();
 #endif
