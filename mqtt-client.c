@@ -50,6 +50,7 @@
 #include "dev/leds.h"
 #include "mqtt-client.h"
 #include "httpd-simple.h"
+#include "batmon-sensor.h"
 
 #include <string.h>
 // #include <strings.h>
@@ -125,7 +126,7 @@ static char sub_topic[BUFFER_SIZE];
  * The main MQTT buffers.
  * We will need to increase if we start publishing more data.
  */
-#define APP_BUFFER_SIZE 512
+#define APP_BUFFER_SIZE 1024
 static struct mqtt_connection conn;
 static char app_buffer[APP_BUFFER_SIZE];
 /*---------------------------------------------------------------------------*/
@@ -137,6 +138,11 @@ static struct etimer append_periodic_timer;
 static struct ctimer ct;
 static char *buf_ptr;
 static uint16_t seq_nr_value = 0;
+
+static uint32_t start_time = 0;
+static uint32_t stop_time = 0;
+static uint32_t start_time_send = 0;
+static uint32_t stop_time_send = 0;
 /*---------------------------------------------------------------------------*/
 static uip_ip6addr_t def_route;
 /*---------------------------------------------------------------------------*/
@@ -615,7 +621,7 @@ subscribe(void)
 {
   /* Publish MQTT topic in IBM quickstart format */
   mqtt_status_t status;
-
+  printf("Subscribing\n");
   status = mqtt_subscribe(&conn, NULL, sub_topic, MQTT_QOS_LEVEL_0);
 
   DBG("APP - Subscribing!\n");
@@ -718,7 +724,6 @@ publishAccReadings(void)
   char myString[NUM_DATA_PER_PUB*DATA_RES] = "";    
 
   seq_nr_value++;
-
   buf_ptr = app_buffer;
   len = snprintf(buf_ptr, remaining,
                  "{"
@@ -727,12 +732,13 @@ publishAccReadings(void)
                  "\"ID\":\"%02x%02x%02x%02x%02x%02x\","
                  "\"Seq #\":%d,"
                  "\"Alive\":%lu,"
+                 "\"Time Send\":%lu,"
                  "\"PubInt\":%lu",
                  "Door Sensor", 
                  linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
                  linkaddr_node_addr.u8[2], linkaddr_node_addr.u8[5],
                  linkaddr_node_addr.u8[6], linkaddr_node_addr.u8[7],
-                 seq_nr_value, clock_seconds(),conf->pub_interval/CLOCK_SECOND);
+                 seq_nr_value, clock_seconds(),start_time_send,conf->pub_interval/CLOCK_SECOND);
 
   if(len < 0 || len >= remaining) {
     printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
@@ -742,6 +748,26 @@ publishAccReadings(void)
   remaining -= len;
   buf_ptr += len;
 
+  for(reading = cc26xx_web_demo_sensor_first();
+      reading != NULL; reading = reading->next) {
+    if(strcmp(reading->descr, "Battery Volt") == 0){
+      // printf("Getting Volt reading, %s\n", reading->descr);
+      if(reading->publish && reading->raw != CC26XX_SENSOR_READING_ERROR) {
+        len = snprintf(buf_ptr, remaining,
+                       ",\"%s\":%s", "batt_volt",
+                       reading->converted);
+
+        if(len < 0 || len >= remaining) {
+          printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
+          return;
+        }
+        remaining -= len;
+        buf_ptr += len;
+        break;
+      }
+    }
+    
+  }
   arrToString(motion_sensor_arr.acc_x, motion_sensor_arr.size, myString);
   len = snprintf(buf_ptr, remaining,
                  ",\"Acc X\":[%s]", myString);
@@ -808,41 +834,45 @@ publishAccReadings(void)
     printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
     return;
   }
-
+  printf("publishing reading now\n");
   mqtt_publish(&conn, NULL, pub_topic, (uint8_t *)app_buffer,
                strlen(app_buffer), MQTT_QOS_LEVEL_0, MQTT_RETAIN_OFF);
   printf("Data Sent, seq %d\n", seq_nr_value);
   DBG("APP - Publish!\n");
 }
 /*---------------------------------------------------------------------------*/
-// static void
-// printMotionReadings(void){
-//   char myString[NUM_DATA_PER_PUB*DATA_RES] = "";    
-//   arrToString(motion_sensor_arr.acc_x, motion_sensor_arr.size, myString);
-//   printf("acc_x is %s\n", myString);
-//   arrToString(motion_sensor_arr.acc_y, motion_sensor_arr.size, myString);
-//   printf("acc_y is %s\n", myString);
-//   arrToString(motion_sensor_arr.acc_z, motion_sensor_arr.size, myString);
-//   printf("acc_z is %s\n", myString);
-//   arrToString(motion_sensor_arr.gyro_x, motion_sensor_arr.size, myString);
-//   printf("gyro_x is %s\n", myString);
-//   arrToString(motion_sensor_arr.gyro_y, motion_sensor_arr.size, myString);
-//   printf("gyro_y is %s\n", myString);
-//   arrToString(motion_sensor_arr.gyro_z, motion_sensor_arr.size, myString);
-//   printf("gyro_z is %s\n", myString);
-// }
+/*static void
+printMotionReadings(void){
+  char myString[NUM_DATA_PER_PUB*DATA_RES] = "";    
+  arrToString(motion_sensor_arr.acc_x, motion_sensor_arr.size, myString);
+  printf("acc_x is %s\n", myString);
+  arrToString(motion_sensor_arr.acc_y, motion_sensor_arr.size, myString);
+  printf("acc_y is %s\n", myString);
+  arrToString(motion_sensor_arr.acc_z, motion_sensor_arr.size, myString);
+  printf("acc_z is %s\n", myString);
+  arrToString(motion_sensor_arr.gyro_x, motion_sensor_arr.size, myString);
+  printf("gyro_x is %s\n", myString);
+  arrToString(motion_sensor_arr.gyro_y, motion_sensor_arr.size, myString);
+  printf("gyro_y is %s\n", myString);
+  arrToString(motion_sensor_arr.gyro_z, motion_sensor_arr.size, myString);
+  printf("gyro_z is %s\n", myString);
+}*/
 /*---------------------------------------------------------------------------*/
 static void 
 appendMotionReadings(void)
 {
   int size = motion_sensor_arr.size;
-  // printf("Size of data is %d\n", size);
+  printf("Size of data is %d\n", size);
+  if(size == 0) {
+    start_time = clock_seconds();
+  }
   if(size == NUM_DATA_PER_PUB){
     // printf("reached full size\n");
     // memset(motion_sensor_arr, 0, sizeof(motion_sensor_Data_t));
     motion_sensor_arr = empty_motion_arr;
     motion_sensor_arr.size = 0;
     size = 0;
+    start_time = clock_seconds();
   }
   for(reading = cc26xx_web_demo_sensor_first();
       reading != NULL; reading = reading->next) {
@@ -962,6 +992,7 @@ state_machine(void)
         leds_on(CC26XX_WEB_DEMO_STATUS_LED);
         ctimer_set(&ct, PUBLISH_LED_ON_DURATION, publish_led_off, NULL);
         // publish();
+        printf("publishing reading, time now is %lu\n", clock_seconds());
         publishAccReadings();
       }
       // etimer_set(&publish_periodic_timer, conf->pub_interval);
@@ -1044,7 +1075,7 @@ PROCESS_THREAD(mqtt_client_process, ev, data)
   PROCESS_BEGIN();
 
   printf("CC26XX MQTT Client Process\n");
-
+  
   conf = &cc26xx_web_demo_config.mqtt_config;
   if(init_config() != 1) {
     PROCESS_EXIT();
@@ -1071,6 +1102,8 @@ PROCESS_THREAD(mqtt_client_process, ev, data)
       appendMotionReadings();
       if(motion_sensor_arr.size == NUM_DATA_PER_PUB){
         // printMotionReadings();
+        start_time_send = start_time;
+        stop_time_send = stop_time;
         state_machine();
       }
     }

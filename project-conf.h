@@ -38,9 +38,9 @@
 /*---------------------------------------------------------------------------*/
 /* Enable/Disable Components of this Demo */
 #define CC26XX_WEB_DEMO_CONF_MQTT_CLIENT      1
-#define CC26XX_WEB_DEMO_CONF_6LBR_CLIENT      1
+#define CC26XX_WEB_DEMO_CONF_6LBR_CLIENT      0
 #define CC26XX_WEB_DEMO_CONF_COAP_SERVER      0
-#define CC26XX_WEB_DEMO_CONF_NET_UART         1
+#define CC26XX_WEB_DEMO_CONF_NET_UART         0
 /*---------------------------------------------------------------------------*/
 /*
  * Shrink the size of the uIP buffer, routing table and ND cache.
