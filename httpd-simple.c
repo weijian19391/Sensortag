@@ -44,7 +44,6 @@
 #include "lib/list.h"
 #include "cc26xx-web-demo.h"
 #include "mqtt-client.h"
-#include "net-uart.h"
 
 #include <stdint.h>
 #include <string.h>

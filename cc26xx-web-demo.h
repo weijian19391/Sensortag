@@ -52,7 +52,6 @@
 #include "dev/leds.h"
 #include "sys/process.h"
 #include "mqtt-client.h"
-#include "net-uart.h"
 
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
@@ -68,17 +67,6 @@
 #define CC26XX_WEB_DEMO_6LBR_CLIENT 1
 #endif
 
-#ifdef CC26XX_WEB_DEMO_CONF_COAP_SERVER
-#define CC26XX_WEB_DEMO_COAP_SERVER CC26XX_WEB_DEMO_CONF_COAP_SERVER
-#else
-#define CC26XX_WEB_DEMO_COAP_SERVER 1
-#endif
-
-#ifdef CC26XX_WEB_DEMO_CONF_NET_UART
-#define CC26XX_WEB_DEMO_NET_UART CC26XX_WEB_DEMO_CONF_NET_UART
-#else
-#define CC26XX_WEB_DEMO_NET_UART 1
-#endif
 /*---------------------------------------------------------------------------*/
 /* Active probing of RSSI from our preferred parent */
 #if (CC26XX_WEB_DEMO_COAP_SERVER || CC26XX_WEB_DEMO_MQTT_CLIENT)
@@ -186,7 +174,7 @@ typedef struct cc26xx_web_demo_config_s {
   uint32_t sensors_bitmap;
   int def_rt_ping_interval;
   mqtt_client_config_t mqtt_config;
-  net_uart_config_t net_uart;
+  // net_uart_config_t net_uart;
 } cc26xx_web_demo_config_t;
 
 typedef struct motion_sensor_data{
