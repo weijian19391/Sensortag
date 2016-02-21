@@ -126,7 +126,7 @@ static char sub_topic[BUFFER_SIZE];
  * The main MQTT buffers.
  * We will need to increase if we start publishing more data.
  */
-#define APP_BUFFER_SIZE 1024
+#define APP_BUFFER_SIZE 512
 static struct mqtt_connection conn;
 static char app_buffer[APP_BUFFER_SIZE];
 /*---------------------------------------------------------------------------*/
@@ -630,79 +630,6 @@ subscribe(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-// static void
-// publish(void)
-// {
-//   /* Publish MQTT topic in IBM quickstart format */
-//   int len;
-//   int remaining = APP_BUFFER_SIZE;
-//   char def_rt_str[64];
-
-//   seq_nr_value++;
-
-//   buf_ptr = app_buffer;
-
-//   len = snprintf(buf_ptr, remaining,
-//                  "{"
-//                  "\"d\":{"
-//                  "\"myName\":\"%s\","
-//                  "\"Seq #\":%d,"
-//                  "\"Uptime (sec)\":%lu",
-//                  BOARD_STRING, seq_nr_value, clock_seconds());
-
-//   if(len < 0 || len >= remaining) {
-//     printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
-//     return;
-//   }
-
-//   remaining -= len;
-//   buf_ptr += len;
-
-//   /* Put our Default route's string representation in a buffer */
-//   memset(def_rt_str, 0, sizeof(def_rt_str));
-//   cc26xx_web_demo_ipaddr_sprintf(def_rt_str, sizeof(def_rt_str),
-//                                  uip_ds6_defrt_choose());
-
-//   len = snprintf(buf_ptr, remaining, ",\"Def Route\":\"%s\",\"RSSI (dBm)\":%d",
-//                  def_rt_str, def_rt_rssi);
-
-//   if(len < 0 || len >= remaining) {
-//     printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
-//     return;
-//   }
-//   remaining -= len;
-//   buf_ptr += len;
-
-//   memcpy(&def_route, uip_ds6_defrt_choose(), sizeof(uip_ip6addr_t));
-
-//   for(reading = cc26xx_web_demo_sensor_first();
-//       reading != NULL; reading = reading->next) {
-//     if(reading->publish && reading->raw != CC26XX_SENSOR_READING_ERROR) {
-//       len = snprintf(buf_ptr, remaining,
-//                      ",\"%s (%s)\":%s", reading->descr, reading->units,
-//                      reading->converted);
-
-//       if(len < 0 || len >= remaining) {
-//         printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
-//         return;
-//       }
-//       remaining -= len;
-//       buf_ptr += len;
-//     }
-//   }
-
-//   len = snprintf(buf_ptr, remaining, "}}");
-
-//   if(len < 0 || len >= remaining) {
-//     printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
-//     return;
-//   }
-
-//   mqtt_publish(&conn, NULL, pub_topic, (uint8_t *)app_buffer,
-//                strlen(app_buffer), MQTT_QOS_LEVEL_0, MQTT_RETAIN_OFF);
-//   DBG("APP - Publish!\n");
-// }
-/*---------------------------------------------------------------------------*/
 static void
 arrToString(char stringArr[][DATA_RES], int size, char* myString){
   int i;
@@ -862,7 +789,7 @@ static void
 appendMotionReadings(void)
 {
   int size = motion_sensor_arr.size;
-  printf("Size of data is %d\n", size);
+  printf("Size:  %d\n", size);
   if(size == 0) {
     start_time = clock_seconds();
   }
@@ -913,11 +840,13 @@ connect_to_broker(void)
   state = MQTT_CLIENT_STATE_CONNECTING;
 }
 /*---------------------------------------------------------------------------*/
-static void
+static bool
 state_machine(void)
 {
+  printf("Enter State machine\n");
   switch(state) {
   case MQTT_CLIENT_STATE_INIT:
+    printf("Case Init\n");
     /* If we have just been configured register MQTT connection */
     mqtt_register(&conn, &mqtt_client_process, client_id, mqtt_event,
                   MQTT_CLIENT_MAX_SEGMENT_SIZE);
@@ -951,22 +880,24 @@ state_machine(void)
     DBG("Init\n");
     /* Continue */
   case MQTT_CLIENT_STATE_REGISTERED:
-    // printf("In registering state\n");
+    printf("case registering state\n");
     if(uip_ds6_get_global(ADDR_PREFERRED) != NULL) {
       /* Registered and with a public IP. Connect */
       DBG("Registered. Connect attempt %u\n", connect_attempt);
       connect_to_broker();
     }
     etimer_set(&publish_periodic_timer, CC26XX_WEB_DEMO_NET_CONNECT_PERIODIC);
-    return;
+    return false;
     break;
   case MQTT_CLIENT_STATE_CONNECTING:
+    printf("case Connecting\n");
     leds_on(CC26XX_WEB_DEMO_STATUS_LED);
     ctimer_set(&ct, CONNECTING_LED_DURATION, publish_led_off, NULL);
     /* Not connected yet. Wait */
     DBG("Connecting (%u)\n", connect_attempt);
     break;
   case MQTT_CLIENT_STATE_CONNECTED:
+    printf("case connected \n");
     /* Don't subscribe unless we are a registered device */
     if(strncasecmp(conf->org_id, QUICKSTART, strlen(conf->org_id)) == 0) {
       DBG("Using 'quickstart': Skipping subscribe\n");
@@ -974,6 +905,7 @@ state_machine(void)
     }
     /* Continue */
   case MQTT_CLIENT_STATE_PUBLISHING:
+    printf("case publish\n");
     /* If the timer expired, the connection is stable. */
     if(timer_expired(&connection_life)) {
       /*
@@ -999,7 +931,7 @@ state_machine(void)
 
       // DBG("Publishing\n");
       /* Return here so we don't end up rescheduling the timer */
-      return;
+      return false;
     } else {
       /*
        * Our publish timer fired, but some MQTT packet is already in flight
@@ -1012,6 +944,12 @@ state_machine(void)
        */
       DBG("Publishing... (MQTT state=%d, q=%u)\n", conn.state,
           conn.out_queue_full);
+      printf("Publishing... (MQTT state=%d, q=%u)\n", conn.state,
+          conn.out_queue_full);
+      // if(conn.out_queue_full == 0) {
+      //   publishAccReadings();
+      // }
+      return true;
     }
     break;
   case MQTT_CLIENT_STATE_DISCONNECTED:
@@ -1031,7 +969,7 @@ state_machine(void)
       etimer_set(&publish_periodic_timer, interval);
 
       state = MQTT_CLIENT_STATE_REGISTERED;
-      return;
+      return false;
     } else {
       /* Max reconnect attempts reached. Enter error state */
       state = MQTT_CLIENT_STATE_ERROR;
@@ -1045,13 +983,13 @@ state_machine(void)
       DBG("New config\n");
 
       /* update_config() scheduled next pass. Return */
-      return;
+      return false;
     }
     break;
   case MQTT_CLIENT_STATE_CONFIG_ERROR:
     /* Idle away. The only way out is a new config */
     printf("Bad configuration.\n");
-    return;
+    return false;
   case MQTT_CLIENT_STATE_ERROR:
   default:
     leds_on(CC26XX_WEB_DEMO_STATUS_LED);
@@ -1062,11 +1000,12 @@ state_machine(void)
      * that can bring us out is a new config event
      */
     printf("Default case: State=0x%02x\n", state);
-    return;
+    return false;
   }
 
   /* If we didn't return so far, reschedule ourselves */
   etimer_set(&publish_periodic_timer, STATE_MACHINE_PERIODIC);
+  return false;
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(mqtt_client_process, ev, data)
