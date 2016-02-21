@@ -39,7 +39,6 @@
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
 #include "contiki-net.h"
-#include "rest-engine.h"
 #include "board-peripherals.h"
 #include "lib/sensors.h"
 #include "lib/list.h"
@@ -50,7 +49,6 @@
 #include "httpd-simple.h"
 #include "cc26xx-web-demo.h"
 #include "mqtt-client.h"
-#include "coap-server.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -659,9 +657,6 @@ PROCESS_THREAD(cc26xx_web_demo_process, ev, data)
 
   /* Start all other (enabled) processes first */
   process_start(&httpd_simple_process, NULL);
-#if CC26XX_WEB_DEMO_COAP_SERVER
-  process_start(&coap_server_process, NULL);
-#endif
 
 #if CC26XX_WEB_DEMO_6LBR_CLIENT
   process_start(&cetic_6lbr_client_process, NULL);
