@@ -880,7 +880,7 @@ state_machine(void)
     DBG("Init\n");
     /* Continue */
   case MQTT_CLIENT_STATE_REGISTERED:
-    printf("case registering state\n");
+    printf("case registering state hahaha\n");
     if(uip_ds6_get_global(ADDR_PREFERRED) != NULL) {
       /* Registered and with a public IP. Connect */
       DBG("Registered. Connect attempt %u\n", connect_attempt);
@@ -944,8 +944,9 @@ state_machine(void)
        */
       DBG("Publishing... (MQTT state=%d, q=%u)\n", conn.state,
           conn.out_queue_full);
-      printf("Publishing... (MQTT state=%d, q=%u)\n", conn.state,
-          conn.out_queue_full);
+      // printf("Publishing... (MQTT state=%d, q=%u)\n", conn.state,
+      //     conn.out_queue_full);
+      printf("mqtt ready is %u\n, out_buffer_sent is %u", mqtt_ready(&conn), conn.out_buffer_sent);
       // if(conn.out_queue_full == 0) {
       //   publishAccReadings();
       // }
