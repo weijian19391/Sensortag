@@ -134,22 +134,22 @@ static char app_buffer[APP_BUFFER_SIZE];
 /*---------------------------------------------------------------------------*/
 static struct mqtt_message *msg_ptr = 0;
 static struct etimer publish_periodic_timer;
-static struct etimer append_periodic_timer;
+// static struct etimer append_periodic_timer;
 static struct ctimer ct;
 static char *buf_ptr;
 static uint16_t seq_nr_value = 0;
 
-static uint32_t start_time = 0;
-static uint32_t stop_time = 0;
-static uint32_t start_time_send = 0;
-static uint32_t stop_time_send = 0;
+// static uint32_t start_time = 0;
+// static uint32_t stop_time = 0;
+// static uint32_t start_time_send = 0;
+// static uint32_t stop_time_send = 0;
 /*---------------------------------------------------------------------------*/
 static uip_ip6addr_t def_route;
 /*---------------------------------------------------------------------------*/
 /* Parent RSSI functionality */
 extern int def_rt_rssi;
 /*---------------------------------------------------------------------------*/
-const static cc26xx_web_demo_sensor_reading_t *reading;
+// const static cc26xx_web_demo_sensor_reading_t *reading;
 /*---------------------------------------------------------------------------*/
 mqtt_client_config_t *conf;
 /*---------------------------------------------------------------------------*/
@@ -578,7 +578,7 @@ update_config(void)
    * Since the error at this stage is a config error, we will only exit this
    * error state if we get a new config.
    */
-  etimer_set(&append_periodic_timer, 0);
+  // etimer_set(&append_periodic_timer, 0);
   return;
 }
 /*---------------------------------------------------------------------------*/
@@ -630,7 +630,7 @@ subscribe(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-static void
+/*static void
 arrToString(char stringArr[][DATA_RES], int size, char* myString){
   int i;
   memset(myString,0,strlen(myString));
@@ -640,12 +640,11 @@ arrToString(char stringArr[][DATA_RES], int size, char* myString){
     strcat(myString, ",");
   }
   myString[strlen(myString)-1] = '\0';
-}
+}*/
 /*---------------------------------------------------------------------------*/
-static void
-publishAccReadings(void)
+/*static void
+publishGyroXReadings(void)
 {
-  /* Publish MQTT topic in IBM quickstart format */
   int len;
   int remaining = APP_BUFFER_SIZE;
   char myString[NUM_DATA_PER_PUB*DATA_RES] = "";    
@@ -766,7 +765,7 @@ publishAccReadings(void)
                strlen(app_buffer), MQTT_QOS_LEVEL_0, MQTT_RETAIN_OFF);
   printf("Data Sent, seq %d\n", seq_nr_value);
   DBG("APP - Publish!\n");
-}
+}*/
 /*---------------------------------------------------------------------------*/
 /*static void
 printMotionReadings(void){
@@ -785,7 +784,7 @@ printMotionReadings(void){
   printf("gyro_z is %s\n", myString);
 }*/
 /*---------------------------------------------------------------------------*/
-static void 
+/*static void 
 appendMotionReadings(void)
 {
   int size = motion_sensor_arr.size;
@@ -829,7 +828,7 @@ appendMotionReadings(void)
   // printf("conf->pub_interval is %lu\n", conf->pub_interval);
   // printf("timer set is %lu\n", conf->pub_interval/NUM_DATA_PER_PUB);
   etimer_set(&append_periodic_timer, conf->pub_interval/NUM_DATA_PER_PUB);
-}
+}*/
 /*---------------------------------------------------------------------------*/
 static void
 connect_to_broker(void)
@@ -925,7 +924,7 @@ state_machine(void)
         ctimer_set(&ct, PUBLISH_LED_ON_DURATION, publish_led_off, NULL);
         // publish();
         printf("publishing reading, time now is %lu\n", clock_seconds());
-        publishAccReadings();
+        // publishAccReadings();
       }
       // etimer_set(&publish_periodic_timer, conf->pub_interval);
 
@@ -944,12 +943,7 @@ state_machine(void)
        */
       DBG("Publishing... (MQTT state=%d, q=%u)\n", conn.state,
           conn.out_queue_full);
-      // printf("Publishing... (MQTT state=%d, q=%u)\n", conn.state,
-      //     conn.out_queue_full);
       printf("mqtt ready is %u\n, out_buffer_sent is %u", mqtt_ready(&conn), conn.out_buffer_sent);
-      // if(conn.out_queue_full == 0) {
-      //   publishAccReadings();
-      // }
       return true;
     }
     break;
@@ -1020,7 +1014,7 @@ PROCESS_THREAD(mqtt_client_process, ev, data)
   if(init_config() != 1) {
     PROCESS_EXIT();
   }
-  motion_sensor_arr.size = 0;
+  // motion_sensor_arr.size = 0;
   register_http_post_handlers();
 
   update_config();
@@ -1037,17 +1031,16 @@ PROCESS_THREAD(mqtt_client_process, ev, data)
     if(ev == PROCESS_EVENT_TIMER && data==&publish_periodic_timer) {
       // printf("After PROCESS_YIELD, data is publish_periodic_timer \n");
     }
-    if(ev == PROCESS_EVENT_TIMER && data == &append_periodic_timer){
+    /*if(ev == PROCESS_EVENT_TIMER && data == &append_periodic_timer){
       // printf("starting appending, time now is %lu\n", clock_seconds());
-      appendMotionReadings();
+      // appendMotionReadings();
       if(motion_sensor_arr.size == NUM_DATA_PER_PUB){
         // printMotionReadings();
         start_time_send = start_time;
         stop_time_send = stop_time;
         state_machine();
       }
-    }
-    // printf("After append function\n");
+    }*/
     if(ev == sensors_event && data == CC26XX_WEB_DEMO_MQTT_PUBLISH_TRIGGER) {
       // printf("Inside CC26XX_WEB_DEMO_MQTT_PUBLISH_TRIGGER\n");
       if(state == MQTT_CLIENT_STATE_ERROR) {
@@ -1055,7 +1048,6 @@ PROCESS_THREAD(mqtt_client_process, ev, data)
         state = MQTT_CLIENT_STATE_REGISTERED;
       }
     }
-    // printf("After publish trigger\n");
     if(ev == httpd_simple_event_new_config) {
       /*
        * Schedule next pass in a while. When HTTPD sends us this event, it is

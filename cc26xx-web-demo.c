@@ -49,7 +49,7 @@
 #include "httpd-simple.h"
 #include "cc26xx-web-demo.h"
 #include "mqtt-client.h"
-
+#include "median-filter.c"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -69,7 +69,7 @@ PROCESS(cc26xx_web_demo_process, "CC26XX Web Demo");
  * Update sensor readings in a staggered fashion every SENSOR_READING_PERIOD
  * ticks + a random interval between 0 and SENSOR_READING_RANDOM ticks
  */
-#define SENSOR_READING_PERIOD (CLOCK_SECOND * 0.50)
+#define SENSOR_READING_PERIOD (CLOCK_SECOND * 0.25 )
 
 struct ctimer batmon_timer;
 
@@ -91,15 +91,16 @@ int def_rt_rssi = 0;
 process_event_t cc26xx_web_demo_publish_event;
 process_event_t cc26xx_web_demo_config_loaded_event;
 process_event_t cc26xx_web_demo_load_config_defaults;
-process_event_t append_motion_sensor_event;
+// process_event_t append_motion_sensor_event;
 /*---------------------------------------------------------------------------*/
 /* Saved settings on flash: store, offset, magic */
 #define CONFIG_FLASH_OFFSET        0
 #define CONFIG_MAGIC      0xCC265002
 
 cc26xx_web_demo_config_t cc26xx_web_demo_config;
-motion_sensor_data_t motion_sensor_arr;
-const motion_sensor_data_t empty_motion_arr;
+int door_state = 0; //0 == close, 1 == open
+// motion_sensor_data_t motion_sensor_arr;
+// const motion_sensor_data_t empty_motion_arr;
 /*---------------------------------------------------------------------------*/
 /* A cache of sensor values. Updated periodically or upon key press */
 LIST(sensor_list);
@@ -438,6 +439,7 @@ get_batmon_reading(void *data)
 static void
 compare_and_update(cc26xx_web_demo_sensor_reading_t *reading)
 {
+  // printf("Updating reading %s\n", reading->descr);
   if(reading->last == reading->raw) {
     reading->changed = 0;
   } else {
@@ -458,6 +460,14 @@ print_mpu_reading(int reading, char *buf)
   }
 
   sprintf(loc_buf, "%d.%02d", reading / 100, reading % 100);
+  // printf("Reading is %s\n", loc);
+}
+
+/*---------------------------------------------------------------------------*/
+static void
+process_gyro_x_reading(int reading)
+{
+  //run a median filter here 
 }
 
 /*---------------------------------------------------------------------------*/
@@ -467,6 +477,8 @@ get_mpu_reading()
   PRINTF("get_mpu_reading()\n");
   // clock_time_t next = SENSOR_READING_PERIOD +
   //   (random_rand() % SENSOR_READING_RANDOM);
+  // printf("Clock is %lu\n", clock_seconds());
+  // printf("per second is %d\n", CLOCK_SECOND);
   clock_time_t next = SENSOR_READING_PERIOD;
   int raw;
 
@@ -477,40 +489,40 @@ get_mpu_reading()
     }
   }
 
-  if(mpu_gyro_y_reading.publish) {
-    raw = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_GYRO_Y);
-    if(raw != CC26XX_SENSOR_READING_ERROR) {
-      mpu_gyro_y_reading.raw = raw;
-    }
-  }
+  // if(mpu_gyro_y_reading.publish) {
+  //   raw = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_GYRO_Y);
+  //   if(raw != CC26XX_SENSOR_READING_ERROR) {
+  //     mpu_gyro_y_reading.raw = raw;
+  //   }
+  // }
 
-  if(mpu_gyro_z_reading.publish) {
-    raw = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_GYRO_Z);
-    if(raw != CC26XX_SENSOR_READING_ERROR) {
-      mpu_gyro_z_reading.raw = raw;
-    }
-  }
+  // if(mpu_gyro_z_reading.publish) {
+  //   raw = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_GYRO_Z);
+  //   if(raw != CC26XX_SENSOR_READING_ERROR) {
+  //     mpu_gyro_z_reading.raw = raw;
+  //   }
+  // }
 
-  if(mpu_acc_x_reading.publish) {
-    raw = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_X);
-    if(raw != CC26XX_SENSOR_READING_ERROR) {
-      mpu_acc_x_reading.raw = raw;
-    }
-  }
+  // if(mpu_acc_x_reading.publish) {
+  //   raw = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_X);
+  //   if(raw != CC26XX_SENSOR_READING_ERROR) {
+  //     mpu_acc_x_reading.raw = raw;
+  //   }
+  // }
 
-  if(mpu_acc_y_reading.publish) {
-    raw = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_Y);
-    if(raw != CC26XX_SENSOR_READING_ERROR) {
-      mpu_acc_y_reading.raw = raw;
-    }
-  }
+  // if(mpu_acc_y_reading.publish) {
+  //   raw = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_Y);
+  //   if(raw != CC26XX_SENSOR_READING_ERROR) {
+  //     mpu_acc_y_reading.raw = raw;
+  //   }
+  // }
 
-  if(mpu_acc_z_reading.publish) {
-    raw = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_Z);
-    if(raw != CC26XX_SENSOR_READING_ERROR) {
-      mpu_acc_z_reading.raw = raw;
-    }
-  }
+  // if(mpu_acc_z_reading.publish) {
+  //   raw = mpu_9250_sensor.value(MPU_9250_SENSOR_TYPE_ACC_Z);
+  //   if(raw != CC26XX_SENSOR_READING_ERROR) {
+  //     mpu_acc_z_reading.raw = raw;
+  //   }
+  // }
 
   SENSORS_DEACTIVATE(mpu_9250_sensor);
 
@@ -518,37 +530,38 @@ get_mpu_reading()
     compare_and_update(&mpu_gyro_x_reading);
     memset(mpu_gyro_x_reading.converted, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
     print_mpu_reading(mpu_gyro_x_reading.raw, mpu_gyro_x_reading.converted);
+    // printf("gyro_x reading is %s\n", mpu_gyro_x_reading.converted);
   }
 
-  if(mpu_gyro_y_reading.publish) {
-    compare_and_update(&mpu_gyro_y_reading);
-    memset(mpu_gyro_y_reading.converted, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
-    print_mpu_reading(mpu_gyro_y_reading.raw, mpu_gyro_y_reading.converted);
-  }
+  // if(mpu_gyro_y_reading.publish) {
+  //   compare_and_update(&mpu_gyro_y_reading);
+  //   memset(mpu_gyro_y_reading.converted, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
+  //   print_mpu_reading(mpu_gyro_y_reading.raw, mpu_gyro_y_reading.converted);
+  // }
 
-  if(mpu_gyro_z_reading.publish) {
-    compare_and_update(&mpu_gyro_z_reading);
-    memset(mpu_gyro_z_reading.converted, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
-    print_mpu_reading(mpu_gyro_z_reading.raw, mpu_gyro_z_reading.converted);
-  }
+  // if(mpu_gyro_z_reading.publish) {
+  //   compare_and_update(&mpu_gyro_z_reading);
+  //   memset(mpu_gyro_z_reading.converted, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
+  //   print_mpu_reading(mpu_gyro_z_reading.raw, mpu_gyro_z_reading.converted);
+  // }
 
-  if(mpu_acc_x_reading.publish) {
-    compare_and_update(&mpu_acc_x_reading);
-    memset(mpu_acc_x_reading.converted, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
-    print_mpu_reading(mpu_acc_x_reading.raw, mpu_acc_x_reading.converted);
-  }
+  // if(mpu_acc_x_reading.publish) {
+  //   compare_and_update(&mpu_acc_x_reading);
+  //   memset(mpu_acc_x_reading.converted, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
+  //   print_mpu_reading(mpu_acc_x_reading.raw, mpu_acc_x_reading.converted);
+  // }
 
-  if(mpu_acc_y_reading.publish) {
-    compare_and_update(&mpu_acc_y_reading);
-    memset(mpu_acc_y_reading.converted, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
-    print_mpu_reading(mpu_acc_y_reading.raw, mpu_acc_y_reading.converted);
-  }
+  // if(mpu_acc_y_reading.publish) {
+  //   compare_and_update(&mpu_acc_y_reading);
+  //   memset(mpu_acc_y_reading.converted, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
+  //   print_mpu_reading(mpu_acc_y_reading.raw, mpu_acc_y_reading.converted);
+  // }
 
-  if(mpu_acc_z_reading.publish) {
-    compare_and_update(&mpu_acc_z_reading);
-    memset(mpu_acc_z_reading.converted, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
-    print_mpu_reading(mpu_acc_z_reading.raw, mpu_acc_z_reading.converted);
-  }
+  // if(mpu_acc_z_reading.publish) {
+  //   compare_and_update(&mpu_acc_z_reading);
+  //   memset(mpu_acc_z_reading.converted, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
+  //   print_mpu_reading(mpu_acc_z_reading.raw, mpu_acc_z_reading.converted);
+  // }
 
   /* We only use the single timer */
   ctimer_set(&mpu_timer, next, init_mpu_reading, NULL);
@@ -638,7 +651,7 @@ PROCESS_THREAD(cc26xx_web_demo_process, ev, data)
   // printf("publish event is %d\n", cc26xx_web_demo_config_loaded_event);
   cc26xx_web_demo_load_config_defaults = process_alloc_event();
   // printf("publish event is %d\n", cc26xx_web_demo_load_config_defaults);
-  append_motion_sensor_event = process_alloc_event();
+  // append_motion_sensor_event = process_alloc_event();
 
   /* Start all other (enabled) processes first */
   process_start(&httpd_simple_process, NULL);
@@ -721,6 +734,22 @@ PROCESS_THREAD(cc26xx_web_demo_process, ev, data)
       save_config();
     } else if(ev == sensors_event && data == &mpu_9250_sensor) {
       get_mpu_reading();
+      int curr_reading = mpu_gyro_x_reading.raw;
+      // printf("reading is %d\n", curr_reading);
+      int filtered_reading = medfilter(curr_reading);
+      printf("%d,%d\n", curr_reading, filtered_reading);
+      if(curr_reading > MPU_GYRO_X_THRESHOLD) {
+        if (door_state == 0) {
+          door_state = 1;
+          printf("Door is opening! gyro reading is %d\n", curr_reading);
+          //send an event to mqtt to trigger a mqtt publish
+        }
+      } else if(curr_reading < -MPU_GYRO_X_THRESHOLD){
+        if(door_state == 1) {
+          door_state = 0;
+          printf("Door is closing! gyro reading is %d\n", curr_reading);
+        }
+      }
     }
 
     PROCESS_YIELD();

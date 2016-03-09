@@ -51,7 +51,7 @@
 
 /* Define the Accelerometer range and sampling rate*/
 #define MPU_9250_SENSOR_CONF_ACC_RANGE 		MPU_9250_SENSOR_ACC_RANGE_2G
-#define MPU_9250_SENSOR_CONF_ACC_SAMPLING 	MPU_9250_SENSOR_ACC_SAMPLING_1_95
+#define MPU_9250_SENSOR_CONF_ACC_SAMPLING 	MPU_9250_SENSOR_ACC_SAMPLING_0_24
 /*---------------------------------------------------------------------------*/
 #endif /* PROJECT_CONF_H_ */
 /*---------------------------------------------------------------------------*/
