@@ -150,7 +150,7 @@ extern process_event_t cc26xx_web_demo_load_config_defaults;
 #define CC26XX_WEB_DEMO_CONVERTED_LEN         12
 // #define DATA_RES                             10 //numbers of char needed for each sensor reading
 // #define NUM_DATA_PER_PUB                     15 //number of readings for each MQTT publish
-#define MPU_GYRO_X_THRESHOLD                  500 // in mRad/sec
+#define MPU_GYRO_X_THRESHOLD                  500 // in mDegrees/sec
 
 /* A data type for sensor readings, internally stored in a linked list */
 typedef struct cc26xx_web_demo_sensor_reading {
@@ -177,8 +177,8 @@ typedef struct cc26xx_web_demo_config_s {
   // net_uart_config_t net_uart;
 } cc26xx_web_demo_config_t;
 
-typedef struct door_data_t{
-  uint64_t time_door_change;
+typedef struct door_data {
+  unsigned long time_door_change;
   uint8_t state_of_door;
 } door_data_t;
 // typedef struct motion_sensor_data{
@@ -190,10 +190,11 @@ typedef struct door_data_t{
 //   char gyro_z[NUM_DATA_PER_PUB][DATA_RES];
 //   int size; 
 // } motion_sensor_data_t;
-
+extern door_data_t curr_door_data;
 extern cc26xx_web_demo_config_t cc26xx_web_demo_config;
 // extern motion_sensor_data_t motion_sensor_arr;
 // extern const motion_sensor_data_t empty_motion_arr;
+// extern door_data_t curr_door_data;
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Performs a lookup for a reading of a specific type of sensor

@@ -126,7 +126,7 @@ static char sub_topic[BUFFER_SIZE];
  * The main MQTT buffers.
  * We will need to increase if we start publishing more data.
  */
-#define APP_BUFFER_SIZE 1024
+#define APP_BUFFER_SIZE 512
 static struct mqtt_connection conn;
 static char app_buffer[APP_BUFFER_SIZE];
 /*---------------------------------------------------------------------------*/
@@ -134,7 +134,7 @@ static char app_buffer[APP_BUFFER_SIZE];
 /*---------------------------------------------------------------------------*/
 static struct mqtt_message *msg_ptr = 0;
 static struct etimer publish_periodic_timer;
-// static struct etimer append_periodic_timer;
+static struct etimer network_reconnect_timer;
 static struct ctimer ct;
 static char *buf_ptr;
 static uint16_t seq_nr_value = 0;
@@ -149,7 +149,7 @@ static uip_ip6addr_t def_route;
 /* Parent RSSI functionality */
 extern int def_rt_rssi;
 /*---------------------------------------------------------------------------*/
-// const static cc26xx_web_demo_sensor_reading_t *reading;
+const static cc26xx_web_demo_sensor_reading_t *reading;
 /*---------------------------------------------------------------------------*/
 mqtt_client_config_t *conf;
 /*---------------------------------------------------------------------------*/
@@ -628,6 +628,7 @@ subscribe(void)
   if(status == MQTT_STATUS_OUT_QUEUE_FULL) {
     DBG("APP - Tried to subscribe but command queue was full!\n");
   }
+  printf("Finished Subscribe\n");
 }
 /*---------------------------------------------------------------------------*/
 /*static void
@@ -642,12 +643,11 @@ arrToString(char stringArr[][DATA_RES], int size, char* myString){
   myString[strlen(myString)-1] = '\0';
 }*/
 /*---------------------------------------------------------------------------*/
-/*static void
+static void
 publishGyroXReadings(void)
 {
   int len;
-  int remaining = APP_BUFFER_SIZE;
-  char myString[NUM_DATA_PER_PUB*DATA_RES] = "";    
+  int remaining = APP_BUFFER_SIZE; 
 
   seq_nr_value++;
   buf_ptr = app_buffer;
@@ -657,14 +657,12 @@ publishGyroXReadings(void)
                  "\"Name\":\"%s\","
                  "\"ID\":\"%02x%02x%02x%02x%02x%02x\","
                  "\"Seq #\":%d,"
-                 "\"Alive\":%lu,"
-                 "\"Time Send\":%lu,"
-                 "\"PubInt\":%lu",
+                 "\"Time Send out\":%lu",
                  "Door Sensor", 
                  linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
                  linkaddr_node_addr.u8[2], linkaddr_node_addr.u8[5],
                  linkaddr_node_addr.u8[6], linkaddr_node_addr.u8[7],
-                 seq_nr_value, clock_seconds(),start_time_send,conf->pub_interval/CLOCK_SECOND);
+                 seq_nr_value, clock_seconds());
 
   if(len < 0 || len >= remaining) {
     printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
@@ -694,9 +692,8 @@ publishGyroXReadings(void)
     }
     
   }
-  arrToString(motion_sensor_arr.acc_x, motion_sensor_arr.size, myString);
   len = snprintf(buf_ptr, remaining,
-                 ",\"Acc X\":[%s]", myString);
+                 ",\"Time detected\":%lu", curr_door_data.time_door_change);
   if(len < 0 || len >= remaining) {
     printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
     return;
@@ -704,68 +701,24 @@ publishGyroXReadings(void)
   remaining -= len;
   buf_ptr += len;
 
-  arrToString(motion_sensor_arr.acc_y, motion_sensor_arr.size, myString);
   len = snprintf(buf_ptr, remaining,
-                 ",\"Acc Y\":[%s]", myString);
+                 ",\"Status\":%d", curr_door_data.state_of_door);
   if(len < 0 || len >= remaining) {
     printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
     return;
   }
   remaining -= len;
   buf_ptr += len;
-
-  arrToString(motion_sensor_arr.acc_z, motion_sensor_arr.size, myString);
-  len = snprintf(buf_ptr, remaining,
-                 ",\"Acc Z\":[%s]", myString);
-  if(len < 0 || len >= remaining) {
-    printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
-    return;
-  }
-  remaining -= len;
-  buf_ptr += len;
-
-  arrToString(motion_sensor_arr.gyro_x, motion_sensor_arr.size, myString);
-  len = snprintf(buf_ptr, remaining,
-                 ",\"Gyro X\":[%s]", myString);
-  if(len < 0 || len >= remaining) {
-    printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
-    return;
-  }
-  remaining -= len;
-  buf_ptr += len;
-
-  arrToString(motion_sensor_arr.gyro_y, motion_sensor_arr.size, myString);
-  len = snprintf(buf_ptr, remaining,
-                 ",\"Gyro Y\":[%s]", myString);
-  if(len < 0 || len >= remaining) {
-    printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
-    return;
-  }
-  remaining -= len;
-  buf_ptr += len;
-
-  arrToString(motion_sensor_arr.gyro_z, motion_sensor_arr.size, myString);
-  len = snprintf(buf_ptr, remaining,
-                 ",\"Gyro Z\":[%s]", myString);
-  if(len < 0 || len >= remaining) {
-    printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
-    return;
-  }
-  remaining -= len;
-  buf_ptr += len;
-
   len = snprintf(buf_ptr, remaining, "}}");
 
-  if(len < 0 || len >= remaining) {
-    printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
-    return;
-  }
   printf("publishing reading now\n");
   mqtt_publish(&conn, NULL, pub_topic, (uint8_t *)app_buffer,
                strlen(app_buffer), MQTT_QOS_LEVEL_0, MQTT_RETAIN_OFF);
   printf("Data Sent, seq %d\n", seq_nr_value);
   DBG("APP - Publish!\n");
-}*/
+}
+
+
 /*---------------------------------------------------------------------------*/
 /*static void
 printMotionReadings(void){
@@ -879,13 +832,13 @@ state_machine(void)
     DBG("Init\n");
     /* Continue */
   case MQTT_CLIENT_STATE_REGISTERED:
-    printf("case registering state hahaha\n");
+    printf("case registering state\n");
     if(uip_ds6_get_global(ADDR_PREFERRED) != NULL) {
       /* Registered and with a public IP. Connect */
       DBG("Registered. Connect attempt %u\n", connect_attempt);
       connect_to_broker();
     }
-    etimer_set(&publish_periodic_timer, CC26XX_WEB_DEMO_NET_CONNECT_PERIODIC);
+    etimer_set(&network_reconnect_timer, CC26XX_WEB_DEMO_NET_CONNECT_PERIODIC);
     return false;
     break;
   case MQTT_CLIENT_STATE_CONNECTING:
@@ -918,13 +871,14 @@ state_machine(void)
       /* Connected. Publish */
       if(state == MQTT_CLIENT_STATE_CONNECTED) {
         subscribe();
+        printf("After Subscribe\n");
         state = MQTT_CLIENT_STATE_PUBLISHING;
       } else {
         leds_on(CC26XX_WEB_DEMO_STATUS_LED);
         ctimer_set(&ct, PUBLISH_LED_ON_DURATION, publish_led_off, NULL);
         // publish();
         printf("publishing reading, time now is %lu\n", clock_seconds());
-        // publishAccReadings();
+        publishGyroXReadings();
       }
       // etimer_set(&publish_periodic_timer, conf->pub_interval);
 
@@ -944,6 +898,7 @@ state_machine(void)
       DBG("Publishing... (MQTT state=%d, q=%u)\n", conn.state,
           conn.out_queue_full);
       printf("mqtt ready is %u\n, out_buffer_sent is %u", mqtt_ready(&conn), conn.out_buffer_sent);
+      etimer_set(&network_reconnect_timer, CC26XX_WEB_DEMO_NET_CONNECT_PERIODIC);
       return true;
     }
     break;
@@ -961,7 +916,7 @@ state_machine(void)
 
       DBG("Disconnected. Attempt %u in %lu ticks\n", connect_attempt, interval);
 
-      etimer_set(&publish_periodic_timer, interval);
+      etimer_set(&network_reconnect_timer, interval);
 
       state = MQTT_CLIENT_STATE_REGISTERED;
       return false;
@@ -999,7 +954,7 @@ state_machine(void)
   }
 
   /* If we didn't return so far, reschedule ourselves */
-  etimer_set(&publish_periodic_timer, STATE_MACHINE_PERIODIC);
+  etimer_set(&network_reconnect_timer, STATE_MACHINE_PERIODIC);
   return false;
 }
 /*---------------------------------------------------------------------------*/
@@ -1021,6 +976,7 @@ PROCESS_THREAD(mqtt_client_process, ev, data)
   /* Main loop */
   //first event is 143 - cc26xx_web_demo_config_loaded_event, this event is set by web-demo.c line 897
   //2nd event is 136, this is set by update_config above.
+  state_machine();
   while(1) {
     // printf("Entering mqtt client process\n");
     PROCESS_YIELD();
@@ -1028,8 +984,13 @@ PROCESS_THREAD(mqtt_client_process, ev, data)
     if(ev == PROCESS_EVENT_TIMER){
       // printf("Trigger is process event timer\n");
     }
-    if(ev == PROCESS_EVENT_TIMER && data==&publish_periodic_timer) {
-      // printf("After PROCESS_YIELD, data is publish_periodic_timer \n");
+    if(ev == PROCESS_EVENT_TIMER && data==&network_reconnect_timer) {
+      state_machine();
+    }
+    if(ev == PROCESS_EVENT_CONTINUE) {
+      printf("Inside event continue\n");
+      printf("Time is %lu\n", ((door_data_t *) data)->time_door_change);
+      state_machine();
     }
     /*if(ev == PROCESS_EVENT_TIMER && data == &append_periodic_timer){
       // printf("starting appending, time now is %lu\n", clock_seconds());

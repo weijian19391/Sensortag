@@ -99,6 +99,7 @@ process_event_t cc26xx_web_demo_load_config_defaults;
 
 cc26xx_web_demo_config_t cc26xx_web_demo_config;
 int door_state = 0; //0 == close, 1 == open
+door_data_t curr_door_data = {.time_door_change = 0, .state_of_door = 0};
 // motion_sensor_data_t motion_sensor_arr;
 // const motion_sensor_data_t empty_motion_arr;
 /*---------------------------------------------------------------------------*/
@@ -465,13 +466,6 @@ print_mpu_reading(int reading, char *buf)
 
 /*---------------------------------------------------------------------------*/
 static void
-process_gyro_x_reading(int reading)
-{
-  //run a median filter here 
-}
-
-/*---------------------------------------------------------------------------*/
-static void
 get_mpu_reading()
 {
   PRINTF("get_mpu_reading()\n");
@@ -735,19 +729,21 @@ PROCESS_THREAD(cc26xx_web_demo_process, ev, data)
     } else if(ev == sensors_event && data == &mpu_9250_sensor) {
       get_mpu_reading();
       int curr_reading = mpu_gyro_x_reading.raw;
-      // printf("reading is %d\n", curr_reading);
       int filtered_reading = medfilter(curr_reading);
       printf("%d,%d\n", curr_reading, filtered_reading);
-      if(curr_reading > MPU_GYRO_X_THRESHOLD) {
-        if (door_state == 0) {
-          door_state = 1;
-          printf("Door is opening! gyro reading is %d\n", curr_reading);
-          //send an event to mqtt to trigger a mqtt publish
+      if(filtered_reading > MPU_GYRO_X_THRESHOLD) {
+        if (curr_door_data.state_of_door == 0) {
+          curr_door_data.state_of_door =1;
+          printf("Door is opening! gyro reading is %d\n", filtered_reading);
+          curr_door_data.time_door_change = clock_seconds();
+          process_post(&mqtt_client_process, PROCESS_EVENT_CONTINUE, &curr_door_data);
         }
-      } else if(curr_reading < -MPU_GYRO_X_THRESHOLD){
-        if(door_state == 1) {
-          door_state = 0;
-          printf("Door is closing! gyro reading is %d\n", curr_reading);
+      } else if(filtered_reading < -MPU_GYRO_X_THRESHOLD){
+        if(curr_door_data.state_of_door == 1) {
+          curr_door_data.state_of_door = 0;
+          printf("Door is closing! gyro reading is %d\n", filtered_reading);
+          curr_door_data.time_door_change = clock_seconds();
+          process_post(&mqtt_client_process, PROCESS_EVENT_CONTINUE, &curr_door_data);  
         }
       }
     }
