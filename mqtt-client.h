@@ -63,6 +63,17 @@ typedef struct mqtt_client_config {
   clock_time_t pub_interval;
   uint16_t broker_port;
 } mqtt_client_config_t;
+
+// typedef struct mqtt_client_config {
+//   char org_id[MQTT_CLIENT_CONFIG_ORG_ID_LEN];
+//   char type_id[MQTT_CLIENT_CONFIG_TYPE_ID_LEN];
+//   char auth_token[MQTT_CLIENT_CONFIG_AUTH_TOKEN_LEN];
+//   char event_type_id[MQTT_CLIENT_CONFIG_EVENT_TYPE_ID_LEN];
+//   char broker_ip[MQTT_CLIENT_CONFIG_IP_ADDR_STR_LEN];
+//   char cmd_type[MQTT_CLIENT_CONFIG_CMD_TYPE_LEN];
+//   clock_time_t pub_interval;
+//   uint16_t broker_port;
+// } mqtt_client_config_t;
 /*---------------------------------------------------------------------------*/
 #endif /* MQTT_CLIENT_H_ */
 /*---------------------------------------------------------------------------*/

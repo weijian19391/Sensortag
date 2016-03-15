@@ -69,7 +69,7 @@ PROCESS(cc26xx_web_demo_process, "CC26XX Web Demo");
  * Update sensor readings in a staggered fashion every SENSOR_READING_PERIOD
  * ticks + a random interval between 0 and SENSOR_READING_RANDOM ticks
  */
-#define SENSOR_READING_PERIOD (CLOCK_SECOND * 0.25 )
+#define SENSOR_READING_PERIOD (CLOCK_SECOND * 0.10 )
 
 struct ctimer batmon_timer;
 
@@ -100,6 +100,9 @@ process_event_t cc26xx_web_demo_load_config_defaults;
 cc26xx_web_demo_config_t cc26xx_web_demo_config;
 int door_state = 0; //0 == close, 1 == open
 door_data_t curr_door_data = {.time_door_change = 0, .state_of_door = 0};
+int average_gyro_x = 0;
+int open_count = 0;
+int close_count = 0;
 // motion_sensor_data_t motion_sensor_arr;
 // const motion_sensor_data_t empty_motion_arr;
 /*---------------------------------------------------------------------------*/
@@ -631,6 +634,16 @@ init_sensors(void)
   SENSORS_ACTIVATE(reed_relay_sensor);
 }
 /*---------------------------------------------------------------------------*/
+static void
+running_average(int curr_gyro_x)
+{
+  if(curr_gyro_x == 0) {
+    average_gyro_x = curr_gyro_x;
+  } else {
+    
+  }
+}
+/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(cc26xx_web_demo_process, ev, data)
 {
   PROCESS_BEGIN();
@@ -733,24 +746,31 @@ PROCESS_THREAD(cc26xx_web_demo_process, ev, data)
       printf("%d,%d\n", curr_reading, filtered_reading);
       if(filtered_reading > MPU_GYRO_X_THRESHOLD) {
         if (curr_door_data.state_of_door == 0) {
-          curr_door_data.state_of_door =1;
-          printf("Door is opening! gyro reading is %d\n", filtered_reading);
-          curr_door_data.time_door_change = clock_seconds();
-          process_post(&mqtt_client_process, PROCESS_EVENT_CONTINUE, &curr_door_data);
+          open_count ++;
+          if(open_count == 5) {
+            curr_door_data.state_of_door =1;
+            printf("Door is opening! gyro reading is %d\n", filtered_reading);
+            curr_door_data.time_door_change = clock_seconds();
+            process_post(&mqtt_client_process, PROCESS_EVENT_CONTINUE, &curr_door_data);          
+          }
         }
       } else if(filtered_reading < -MPU_GYRO_X_THRESHOLD){
         if(curr_door_data.state_of_door == 1) {
-          curr_door_data.state_of_door = 0;
-          printf("Door is closing! gyro reading is %d\n", filtered_reading);
-          curr_door_data.time_door_change = clock_seconds();
-          process_post(&mqtt_client_process, PROCESS_EVENT_CONTINUE, &curr_door_data);  
+          close_count ++;
+          if(close_count == 5){
+            curr_door_data.state_of_door = 0;
+            printf("Door is closing! gyro reading is %d\n", filtered_reading);
+            curr_door_data.time_door_change = clock_seconds();
+            process_post(&mqtt_client_process, PROCESS_EVENT_CONTINUE, &curr_door_data);  
+          }
         }
+      } else {
+        close_count = 0;
+        open_count = 0;
       }
     }
-
     PROCESS_YIELD();
   }
-
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/

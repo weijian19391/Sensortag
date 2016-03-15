@@ -150,8 +150,8 @@ extern process_event_t cc26xx_web_demo_load_config_defaults;
 #define CC26XX_WEB_DEMO_CONVERTED_LEN         12
 // #define DATA_RES                             10 //numbers of char needed for each sensor reading
 // #define NUM_DATA_PER_PUB                     15 //number of readings for each MQTT publish
-#define MPU_GYRO_X_THRESHOLD                  500 // in mDegrees/sec
-
+#define MPU_GYRO_X_THRESHOLD                  800 // in mDegrees/sec
+#define MQTT_OUT_BUFFER                       20
 /* A data type for sensor readings, internally stored in a linked list */
 typedef struct cc26xx_web_demo_sensor_reading {
   struct cc26xx_web_demo_sensor_reading *next;
@@ -191,6 +191,7 @@ typedef struct door_data {
 //   int size; 
 // } motion_sensor_data_t;
 extern door_data_t curr_door_data;
+extern door_data_t mqtt_out_arr[MQTT_OUT_BUFFER];
 extern cc26xx_web_demo_config_t cc26xx_web_demo_config;
 // extern motion_sensor_data_t motion_sensor_arr;
 // extern const motion_sensor_data_t empty_motion_arr;

@@ -1,7 +1,7 @@
 /*Algorithm obtained from Phil Ekstrom (Embedded Systems Programming, November 2000)*/
 
 #include <stdio.h>
-#define WINDOW_SIZE 5 /* Size of the data buffer; length of the sequence. */
+#define WINDOW_SIZE 7 /* Size of the data buffer; length of the sequence. */
 #define STOPPER 0 /* Smaller than any reading */
 static unsigned int medfilter(unsigned int reading)
 {

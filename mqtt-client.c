@@ -53,6 +53,7 @@
 #include "batmon-sensor.h"
 
 #include <string.h>
+// #include "lib/mmem.h"
 // #include <strings.h>
 /*---------------------------------------------------------------------------*/
 /*
@@ -143,6 +144,8 @@ static uint16_t seq_nr_value = 0;
 // static uint32_t stop_time = 0;
 // static uint32_t start_time_send = 0;
 // static uint32_t stop_time_send = 0;
+door_data_t mqtt_out_arr[MQTT_OUT_BUFFER];
+static int size_of_out_arr = 0;
 /*---------------------------------------------------------------------------*/
 static uip_ip6addr_t def_route;
 /*---------------------------------------------------------------------------*/
@@ -648,7 +651,8 @@ publishGyroXReadings(void)
 {
   int len;
   int remaining = APP_BUFFER_SIZE; 
-
+  door_data_t mqtt_data; 
+  memcpy(&mqtt_data, &mqtt_out_arr[size_of_out_arr-1], sizeof(door_data_t));
   seq_nr_value++;
   buf_ptr = app_buffer;
   len = snprintf(buf_ptr, remaining,
@@ -693,7 +697,7 @@ publishGyroXReadings(void)
     
   }
   len = snprintf(buf_ptr, remaining,
-                 ",\"Time detected\":%lu", curr_door_data.time_door_change);
+                 ",\"Time detected\":%lu", mqtt_data.time_door_change);
   if(len < 0 || len >= remaining) {
     printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
     return;
@@ -702,7 +706,7 @@ publishGyroXReadings(void)
   buf_ptr += len;
 
   len = snprintf(buf_ptr, remaining,
-                 ",\"Status\":%d", curr_door_data.state_of_door);
+                 ",\"Status\":%d", mqtt_data.state_of_door);
   if(len < 0 || len >= remaining) {
     printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
     return;
@@ -795,18 +799,12 @@ connect_to_broker(void)
 static bool
 state_machine(void)
 {
-  printf("Enter State machine\n");
+  // printf("Enter State machine\n");
   switch(state) {
   case MQTT_CLIENT_STATE_INIT:
     printf("Case Init\n");
-    /* If we have just been configured register MQTT connection */
     mqtt_register(&conn, &mqtt_client_process, client_id, mqtt_event,
                   MQTT_CLIENT_MAX_SEGMENT_SIZE);
-
-    /*
-     * If we are not using the quickstart service (thus we are an IBM
-     * registered device), we need to provide user name and password
-     */
     if(strncasecmp(conf->org_id, QUICKSTART, strlen(conf->org_id)) != 0) {
       if(strlen(conf->auth_token) == 0) {
         printf("User name set, but empty auth token\n");
@@ -842,7 +840,7 @@ state_machine(void)
     return false;
     break;
   case MQTT_CLIENT_STATE_CONNECTING:
-    printf("case Connecting\n");
+    // printf("case Connecting\n");
     leds_on(CC26XX_WEB_DEMO_STATUS_LED);
     ctimer_set(&ct, CONNECTING_LED_DURATION, publish_led_off, NULL);
     /* Not connected yet. Wait */
@@ -871,19 +869,17 @@ state_machine(void)
       /* Connected. Publish */
       if(state == MQTT_CLIENT_STATE_CONNECTED) {
         subscribe();
-        printf("After Subscribe\n");
         state = MQTT_CLIENT_STATE_PUBLISHING;
       } else {
         leds_on(CC26XX_WEB_DEMO_STATUS_LED);
         ctimer_set(&ct, PUBLISH_LED_ON_DURATION, publish_led_off, NULL);
-        // publish();
-        printf("publishing reading, time now is %lu\n", clock_seconds());
         publishGyroXReadings();
+        DBG("Publishing\n");
+        size_of_out_arr -= 1;
       }
-      // etimer_set(&publish_periodic_timer, conf->pub_interval);
-
-      // DBG("Publishing\n");
-      /* Return here so we don't end up rescheduling the timer */
+      if(size_of_out_arr >0) {
+        etimer_set(&network_reconnect_timer, CC26XX_WEB_DEMO_NET_CONNECT_PERIODIC); //should declare a new etimer here, but i no time liao la, so reuse the current one.
+      }
       return false;
     } else {
       /*
@@ -976,32 +972,22 @@ PROCESS_THREAD(mqtt_client_process, ev, data)
   /* Main loop */
   //first event is 143 - cc26xx_web_demo_config_loaded_event, this event is set by web-demo.c line 897
   //2nd event is 136, this is set by update_config above.
-  state_machine();
+  // state_machine();
   while(1) {
     // printf("Entering mqtt client process\n");
     PROCESS_YIELD();
     // printf("After PROCESS_YIELD\n");
-    if(ev == PROCESS_EVENT_TIMER){
-      // printf("Trigger is process event timer\n");
-    }
     if(ev == PROCESS_EVENT_TIMER && data==&network_reconnect_timer) {
       state_machine();
     }
-    if(ev == PROCESS_EVENT_CONTINUE) {
-      printf("Inside event continue\n");
+    if(ev == PROCESS_EVENT_CONTINUE && data == &curr_door_data) {
       printf("Time is %lu\n", ((door_data_t *) data)->time_door_change);
+      memcpy(&mqtt_out_arr[size_of_out_arr], data, sizeof(door_data_t));
+      printf("current time reading is %lu\n", mqtt_out_arr[size_of_out_arr].time_door_change);
+      printf("Current Status is %d\n", mqtt_out_arr[size_of_out_arr].state_of_door);
+      size_of_out_arr += 1;
       state_machine();
     }
-    /*if(ev == PROCESS_EVENT_TIMER && data == &append_periodic_timer){
-      // printf("starting appending, time now is %lu\n", clock_seconds());
-      // appendMotionReadings();
-      if(motion_sensor_arr.size == NUM_DATA_PER_PUB){
-        // printMotionReadings();
-        start_time_send = start_time;
-        stop_time_send = stop_time;
-        state_machine();
-      }
-    }*/
     if(ev == sensors_event && data == CC26XX_WEB_DEMO_MQTT_PUBLISH_TRIGGER) {
       // printf("Inside CC26XX_WEB_DEMO_MQTT_PUBLISH_TRIGGER\n");
       if(state == MQTT_CLIENT_STATE_ERROR) {
